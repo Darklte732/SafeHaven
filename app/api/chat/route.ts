@@ -8,7 +8,7 @@ type Message = {
 };
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
 const SYSTEM_PROMPT = `You are Grace Santos, a licensed Insurance Agent at SafeHaven Insurance, specializing in Final Expense Insurance. You are an expert negotiator and closer with a mission to provide compassionate financial protection for families.
@@ -85,37 +85,67 @@ PRODUCT DETAILS:
 Remember to maintain a professional yet warm demeanor throughout the interaction, prioritizing the client's needs and comfort level.`;
 
 export async function POST(req: Request) {
+  console.log('Received chat request');
+  
   try {
+    // Log request details
+    const url = new URL(req.url);
+    console.log('Request URL:', url.toString());
+    console.log('Request method:', req.method);
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+
     // Check API key
     if (!process.env.ANTHROPIC_API_KEY) {
       console.error('ANTHROPIC_API_KEY is not set');
-      return NextResponse.json(
-        { error: 'The AI service is not properly configured. Please contact support.' },
-        { 
+      return new Response(
+        JSON.stringify({ error: 'The AI service is not properly configured. Please contact support.' }),
+        {
           status: 500,
           headers: {
+            'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          }
+          },
         }
       );
     }
 
-    // Parse request body
-    const body = await req.json();
-    const { messages } = body;
-
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: 'Invalid request format. Messages must be an array.' },
-        { 
+    // Parse and validate request body
+    let body;
+    try {
+      body = await req.json();
+      console.log('Received request body:', body);
+    } catch (error) {
+      console.error('Error parsing request body:', error);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body. Please check your input.' }),
+        {
           status: 400,
           headers: {
+            'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          }
+          },
+        }
+      );
+    }
+
+    const { messages } = body;
+
+    if (!messages || !Array.isArray(messages)) {
+      console.error('Invalid messages format:', messages);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request format. Messages must be an array.' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
         }
       );
     }
@@ -134,7 +164,10 @@ export async function POST(req: Request) {
       };
     });
 
+    console.log('Processed message history:', messageHistory);
+
     // Call Claude API
+    console.log('Calling Claude API...');
     const response = await anthropic.messages.create({
       model: 'claude-3-opus-20240229',
       max_tokens: 1024,
@@ -143,21 +176,25 @@ export async function POST(req: Request) {
       messages: messageHistory,
     });
 
+    console.log('Received Claude API response:', response);
+
     // Validate response
     const content = response.content[0];
     if (!content || content.type !== 'text' || !content.text) {
       throw new Error('Invalid response from AI service');
     }
 
-    // Return response
-    return NextResponse.json(
-      { message: content.text },
+    // Return successful response
+    return new Response(
+      JSON.stringify({ message: content.text }),
       {
+        status: 200,
         headers: {
+          'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        }
+        },
       }
     );
 
@@ -168,6 +205,12 @@ export async function POST(req: Request) {
     let statusCode = 500;
     
     if (error instanceof Error) {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
+
       if (error.message.includes('ANTHROPIC_API_KEY')) {
         errorMessage = 'The AI service is not properly configured. Please contact support.';
       } else if (error.message.includes('Invalid role') || error.message.includes('Invalid message content')) {
@@ -179,30 +222,28 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { 
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      {
         status: statusCode,
         headers: {
+          'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        }
+        },
       }
     );
   }
 }
 
 export async function OPTIONS(request: Request) {
-  return NextResponse.json(
-    {},
-    {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    }
-  );
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 } 
