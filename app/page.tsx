@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { SafeImage } from '../components/ui/image'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
+import { Navigation } from '../components/ui/navigation'
 
 // Lazy load components that are not needed immediately
 const FAQItem = lazy(() => import('../components/ui/faq-item').then(mod => ({ default: mod.FAQItem })))
@@ -59,7 +60,6 @@ export default function Home() {
               width={600}
               height={400}
               className="w-full h-[300px] sm:h-[400px] object-contain bg-gradient-to-r from-blue-50 to-white transition-transform duration-700 group-hover:scale-105"
-              priority={true}
             />
           </div>
         </div>

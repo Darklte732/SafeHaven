@@ -1,4 +1,5 @@
 import { SafeImage } from '../../components/ui/image'
+import { Navigation } from '../../components/ui/navigation'
 
 export default function FeaturesPage() {
   return (
