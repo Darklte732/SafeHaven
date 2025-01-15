@@ -3,7 +3,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { SafeImage } from '../components/ui/image'
 import { Inter } from 'next/font/google'
-import { Navigation } from '../components/ui/navigation'
 import Script from 'next/script'
 
 // Lazy load components that are not needed immediately

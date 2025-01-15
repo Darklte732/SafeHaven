@@ -1,11 +1,9 @@
 import React from 'react';
-import { Navigation } from '../../components/ui/navigation';
 import Link from 'next/link';
 
 export default function LicensingPage() {
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navigation />
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Licensing Information</h1>
         

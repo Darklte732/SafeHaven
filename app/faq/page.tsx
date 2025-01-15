@@ -1,6 +1,5 @@
 import { FAQItem } from '../../components/ui/faq-item'
 import { SafeImage } from '../../components/ui/image'
-import { Navigation } from '../../components/ui/navigation'
 
 export default function FAQPage() {
   return (

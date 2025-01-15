@@ -1,6 +1,5 @@
 import { SafeImage } from '../../components/ui/image'
 import Link from 'next/link'
-import { Navigation } from '../../components/ui/navigation'
 
 export default function PrivacyPolicyPage() {
   return (

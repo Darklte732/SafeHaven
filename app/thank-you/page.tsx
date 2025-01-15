@@ -1,6 +1,5 @@
 'use client';
 
-import { Navigation } from '../../components/ui/navigation';
 import Script from 'next/script';
 
 export const runtime = 'edge';
