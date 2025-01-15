@@ -91,7 +91,14 @@ export async function POST(req: Request) {
       console.error('ANTHROPIC_API_KEY is not set');
       return NextResponse.json(
         { error: 'The AI service is not properly configured. Please contact support.' },
-        { status: 500 }
+        { 
+          status: 500,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
       );
     }
 
@@ -102,7 +109,14 @@ export async function POST(req: Request) {
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
         { error: 'Invalid request format. Messages must be an array.' },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
       );
     }
 
@@ -136,7 +150,16 @@ export async function POST(req: Request) {
     }
 
     // Return response
-    return NextResponse.json({ message: content.text });
+    return NextResponse.json(
+      { message: content.text },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
+    );
 
   } catch (error) {
     console.error('Chat API error:', error);
@@ -158,7 +181,28 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { error: errorMessage },
-      { status: statusCode }
+      { 
+        status: statusCode,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
     );
   }
+}
+
+export async function OPTIONS(request: Request) {
+  return NextResponse.json(
+    {},
+    {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    }
+  );
 } 
