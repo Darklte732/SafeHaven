@@ -1,0 +1,64 @@
+[33m7ab8fdc[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Update build configuration and dependencies
+[33m5f9dd4d[m Update Prisma to v5.10.2 and fix dependencies
+[33mfe9ef60[m update: enhance landing page with new hero image and carrier section
+[33m3f39f94[m restore: original landing page design with all sections
+[33mabf7da0[m simplify: remove social login, keep only email/password auth
+[33m2a68a88[m fix: add prisma generate to build process
+[33mfc1464f[m update: auth system improvements
+[33m12f31c5[m update: auth system improvements
+[33m16260bf[m Fix: Update /me route to use correct types and cookie handling
+[33m53f772b[m Fix: Update dependencies and resolve type errors in auth routes
+[33m8ba7a1d[m Fix: Update logout route to use proper cookie deletion method
+[33mdbc6f25[m Fix login route type error and improve error handling
+[33mb3e48bb[m Add social login functionality with Google, Facebook, and Apple Sign In
+[33m6df3959[m feat: Add family image hover effect to carrier logos
+[33m4319361[m fix: Update hero image to use high-quality SVG format
+[33m2c70583[m fix: Update hero image to show appropriate family photo
+[33m4dc14ea[m fix: Update CarrierLogos component with simpler image implementation
+[33m3c9e663[m feat: Add new carrier logo images
+[33mf9041fc[m feat: Update carrier logos component with new design and layout
+[33m3d268d9[m fix: Update carrier logos section and fix image paths
+[33m09418bc[m fix: Update carrier logos section with improved layout and styling
+[33macf9434[m update: Replace carrier logos with new partners
+[33m3b18dfb[m update: Change phone number to +1 (844) 628-4442
+[33m2639097[m feat: Add address fields and fix date format
+[33m260ba01[m feat: Update form to use new database schema
+[33md44a1d7[m fix: Update coverage_amount field name to match database schema
+[33m1f1702d[m fix: Update field names to match database schema
+[33m5093e42[m fix: Remove address fields to match database schema
+[33m5a653b7[m fix: Update form submission to handle existing database structure and add interaction tracking
+[33m6985871[m fix: Update Supabase configuration with direct credentials
+[33m9a41d2c[m fix: Update Supabase initialization for edge runtime and client-side only
+[33ma0d6da5[m fix: Add dynamic rendering and better Supabase error handling
+[33m4bc0224[m feat: Add Supabase integration, thank you page with Calendly, and form submission handling
+[33m6c15688[m feat: Add enhanced widget features with form validation, interactive elements, and performance optimization
+[33m967f305[m fix: Update ElevenLabs widget implementation with direct script injection
+[33mcae8f99[m fix: Update family photo and properly implement ElevenLabs widget
+[33me543376[m fix: Update family photo and ElevenLabs widget implementation
+[33m7de27c6[m fix: Update family photo implementation and mobile responsiveness
+[33m50dfde9[m fix: Update CSS optimization and add critters dependency
+[33m7163dad[m fix: Update image handling and improve Learn More button
+[33ma9cff7f[m fix: Update image configuration and widget implementation
+[33m18c1d87[m fix: Remove onLoad handler from SafeImage and update navigation styling
+[33mcd2f70d[m Fix family photo display and widget visibility
+[33m98acf2c[m Fix logo display, family photo animation, and widget visibility
+[33m6a0283c[m Fix logo visibility and adjust dimensions
+[33m615bef9[m Fix widget positioning and family photo hover effect
+[33md0337f6[m Fix client component errors and update widget configuration
+[33m7d63631[m Add hover effect to main family photo
+[33m656e722[m Fix image hover effect and update widget retraction behavior
+[33m7f9b0af[m Clean up opt-in section layout and remove extra spacing
+[33m1fb2d27[m Fix logo hover effect and update widget retraction behavior
+[33m64b7fda[m Make ElevenLabs widget retractable
+[33mab1cb12[m Update image hover effect, licensing info, and enhance AI opt-in section
+[33me9f5969[m Add Terms of Service and Licensing pages
+[33m433e54f[m Fix widget implementation and add quote form page
+[33m63e3ce8[m Fix mobile navigation and client component errors
+[33m1d64c84[m Fix client component errors and mobile navigation
+[33m2e44508[m Fix mobile navigation and social links
+[33md7c0ef5[m Initial commit - SafeHaven landing page
+[33m5a4db97[m Improve responsive design for both mobile and desktop views
+[33m2ea2fcf[m Improve mobile responsiveness of Mac window component
+[33mbb07336[m Initial commit
+[33m741ad01[m Initial commit
+[33mfc18bb8[m Initial commit

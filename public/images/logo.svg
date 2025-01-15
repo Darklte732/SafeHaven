@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="40" viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield with gradient -->
+  <defs>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Main shield -->
+  <path d="M24 4L8 10V18C8 28.84 15.68 39.184 24 42C32.32 39.184 40 28.84 40 18V10L24 4Z" 
+        transform="scale(0.5) translate(8, -4)"
+        fill="url(#shieldGradient)" 
+        stroke="#1e40af" 
+        stroke-width="1.5" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Checkmark inside shield -->
+  <path d="M14 16L17 19L22 14" 
+        stroke="white" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- SafeHaven text -->
+  <text x="48" y="24" 
+        font-family="Arial, sans-serif" 
+        font-size="22" 
+        font-weight="700" 
+        fill="#1e40af" 
+        letter-spacing="-0.02em">SafeHaven</text>
+  
+  <!-- Insurance text -->
+  <text x="48" y="36" 
+        font-family="Arial, sans-serif" 
+        font-size="12" 
+        font-weight="500" 
+        fill="#64748b">Insurance</text>
+</svg> 

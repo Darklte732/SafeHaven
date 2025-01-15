@@ -1,0 +1,18 @@
+Default placeholder images needed:
+
+1. family-placeholder.jpg
+- Size: 1200x800px
+- Content: Silhouette of a multi-generational family
+- Colors: Blue gradient background
+
+2. avatar-placeholder.jpg
+- Size: 400x400px
+- Content: Generic user icon
+- Colors: Light blue background
+
+3. testimonial-placeholder.jpg
+- Size: 800x600px
+- Content: Professional business setting
+- Colors: Neutral gray background
+
+Note: These images should be generated or sourced with appropriate licensing for commercial use. 

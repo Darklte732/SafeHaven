@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "https://safehaven-jviseqpu0-darklte732s-projects.vercel.app",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://powrsyajxwotomihmvum.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvd3JzeWFqeHdvdG9taWhtdnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MzU1ODMsImV4cCI6MjA1MDMxMTU4M30.kK_Gsym0QsGrKM_KqrqGHDM5-wD-22tBZD4RTdXlhNs"
+  }
+} 

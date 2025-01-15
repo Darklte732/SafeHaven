@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+  }
+
+  .button-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-md transition-colors;
+  }
+
+  .trust-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full bg-white shadow-sm text-gray-700;
+  }
+
+  .feature-card {
+    @apply p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow;
+  }
+
+  .testimonial-card {
+    @apply p-6 bg-white rounded-lg shadow-sm border border-gray-100;
+  }
+
+  .icon-container {
+    @apply w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-primary;
+  }
+}
+
+/* Animation */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Image loading and error states */
+.image-loading-placeholder {
+  @apply animate-pulse bg-gray-200;
+}
+
+.image-error-placeholder {
+  @apply flex items-center justify-center bg-gray-100 text-gray-400;
+}
+
+/* Button styles */
+.button-primary {
+  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-primary rounded-md shadow-sm hover:bg-primary/90 transition-colors;
+}
+
+.button-secondary {
+  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary bg-white border-2 border-primary rounded-md shadow-sm hover:bg-gray-50 transition-colors;
+}
+

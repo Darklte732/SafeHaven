@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="600" height="400" fill="#F8FAFF"/>
+    
+    <!-- Family Group - More minimalist design -->
+    <g transform="translate(200, 100)">
+        <!-- Parent 1 -->
+        <g>
+            <circle cx="50" cy="50" r="25" fill="#1E40AF"/>
+            <rect x="35" y="75" width="30" height="60" fill="#1E40AF" rx="10"/>
+        </g>
+        
+        <!-- Parent 2 -->
+        <g>
+            <circle cx="120" cy="50" r="25" fill="#2563EB"/>
+            <rect x="105" y="75" width="30" height="60" fill="#2563EB" rx="10"/>
+        </g>
+        
+        <!-- Child 1 -->
+        <g transform="translate(-30, 80)">
+            <circle cx="50" cy="50" r="20" fill="#3B82F6"/>
+            <rect x="38" y="70" width="24" height="45" fill="#3B82F6" rx="8"/>
+        </g>
+        
+        <!-- Child 2 -->
+        <g transform="translate(50, 80)">
+            <circle cx="50" cy="50" r="20" fill="#60A5FA"/>
+            <rect x="38" y="70" width="24" height="45" fill="#60A5FA" rx="8"/>
+        </g>
+        
+        <!-- Child 3 -->
+        <g transform="translate(130, 80)">
+            <circle cx="50" cy="50" r="20" fill="#93C5FD"/>
+            <rect x="38" y="70" width="24" height="45" fill="#93C5FD" rx="8"/>
+        </g>
+    </g>
+    
+    <!-- Decorative Wave -->
+    <path d="M0 350C150 320 450 320 600 350L600 400L0 400Z" fill="#E6EFFF"/>
+</svg> 
