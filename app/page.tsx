@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <main className="min-h-screen pt-24">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-12 md:py-20">
+      <section className="bg-white py-12 md:py-20">
         <div className="container-custom grid md:grid-cols-2 gap-8 md:gap-12 items-center px-4 md:px-6">
           <div className="space-y-6 md:space-y-8">
             <div className="flex flex-wrap gap-3 md:gap-4">
@@ -29,18 +29,18 @@ export default function Home() {
                 Licensed & Insured
               </span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold leading-tight">Protect Your Family's Future with Affordable Final Expense Insurance</h1>
+            <h1 className="text-3xl md:text-5xl font-bold leading-tight text-gray-900">Protect Your Family's Future with Affordable Final Expense Insurance</h1>
             <p className="text-lg md:text-xl text-gray-600">Get peace of mind knowing your loved ones won&apos;t face financial burden. Coverage starts at just $20/month.</p>
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
               <Link 
                 href="/quote" 
-                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-primary rounded-md shadow-sm hover:bg-primary/90 transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700 transition-colors"
               >
                 Get Your Free Quote
               </Link>
               <Link 
                 href="/features" 
-                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary bg-white border-2 border-primary rounded-md shadow-sm hover:bg-gray-50 transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-base font-medium text-blue-600 bg-white border-2 border-blue-600 rounded-md shadow-sm hover:bg-gray-50 transition-colors"
               >
                 <span>Learn More</span>
                 <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,14 +49,14 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <div className="mx-auto group animate-float w-full max-w-[600px] relative overflow-hidden rounded-lg shadow-xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent z-10"></div>
+          <div className="mx-auto group w-full max-w-[600px] relative overflow-hidden rounded-lg shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent z-10"></div>
             <SafeImage
               src="/images/family-generations.svg"
               alt="Three generations of family together - grandparents, parents, and children"
               width={600}
               height={400}
-              className="w-full h-[300px] sm:h-[400px] object-contain bg-gradient-to-r from-blue-50 to-white transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-[300px] sm:h-[400px] object-cover bg-white transition-transform duration-700 group-hover:scale-105"
             />
           </div>
         </div>
@@ -251,15 +251,15 @@ export default function Home() {
       </Suspense>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-white">
+      <section className="py-20 bg-blue-600">
         <div className="container-custom text-center">
-          <h2 className="text-4xl font-bold mb-8">Ready to Protect Your Family's Future?</h2>
-          <p className="text-xl mb-12">Get your free quote today and join thousands of satisfied customers who trust SafeHaven.</p>
+          <h2 className="text-4xl font-bold mb-8 text-white">Ready to Protect Your Family's Future?</h2>
+          <p className="text-xl mb-12 text-white">Get your free quote today and join thousands of satisfied customers who trust SafeHaven.</p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link href="/quote" className="button-primary bg-white text-primary hover:bg-gray-100 text-center">
+            <Link href="/quote" className="button-primary bg-white text-blue-600 hover:bg-gray-100 text-center px-8 py-3 rounded-md font-semibold">
               Get Your Free Quote
             </Link>
-            <Link href="tel:+18446284442" className="button-primary bg-primary-dark text-white hover:bg-primary-darker flex items-center justify-center gap-2 group">
+            <Link href="tel:+18446284442" className="button-primary bg-blue-700 text-white hover:bg-blue-800 flex items-center justify-center gap-2 group px-8 py-3 rounded-md font-semibold">
               <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
