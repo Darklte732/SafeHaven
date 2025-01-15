@@ -8,34 +8,22 @@ export function Navbar() {
   const pathname = usePathname()
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm fixed w-full top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center">
-              <div className="w-[180px] h-[40px]">
-                <svg width="180" height="40" viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#2563eb"/>
-                      <stop offset="100%" stopColor="#1d4ed8"/>
-                    </linearGradient>
-                  </defs>
-                  
-                  <path d="M24 4L8 10V18C8 28.84 15.68 39.184 24 42C32.32 39.184 40 28.84 40 18V10L24 4Z" 
-                        transform="scale(0.5) translate(8, -4)"
-                        fill="url(#shieldGradient)" 
-                        stroke="#1e40af" 
-                        strokeWidth="1.5" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"/>
-                  
-                  <path d="M14 16L17 19L22 14" 
-                        stroke="white" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"/>
-                  
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <Link href="/" className="flex-shrink-0 flex items-center">
+              <div className="w-40 h-10 relative">
+                <svg viewBox="0 0 200 40" className="absolute inset-0">
+                  <circle cx="20" cy="20" r="16" fill="#1e40af" />
+                  <path
+                    d="M14 20l4 4 8-8"
+                    stroke="white"
+                    strokeWidth="2.5"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                   <text x="48" y="24" 
                         fontFamily="Arial, sans-serif" 
                         fontSize="22" 
@@ -83,6 +71,16 @@ export function Navbar() {
               }`}
             >
               FAQ
+            </Link>
+            <Link
+              href="/chat"
+              className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                pathname === '/chat'
+                  ? 'text-primary-600 border-b-2 border-primary-500'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Chat with AI
             </Link>
           </div>
 
