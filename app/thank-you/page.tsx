@@ -1,7 +1,6 @@
 'use client';
 
 import Script from 'next/script';
-import { Navigation } from '../../components/ui/navigation';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -9,8 +8,6 @@ export const dynamic = 'force-dynamic';
 export default function ThankYouPage() {
   return (
     <main className="min-h-screen bg-gray-50 pt-24">
-      <Navigation />
-      
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Thank You Message */}

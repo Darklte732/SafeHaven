@@ -1,12 +1,9 @@
 import { FAQItem } from '../../components/ui/faq-item'
 import { SafeImage } from '../../components/ui/image'
-import { Navigation } from '../../components/ui/navigation'
 
 export default function FAQPage() {
   return (
     <main className="min-h-screen">
-      <Navigation />
-
       {/* FAQ Content */}
       <section className="py-20 bg-gray-50">
         <div className="container-custom">

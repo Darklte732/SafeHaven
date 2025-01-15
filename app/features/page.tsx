@@ -1,11 +1,8 @@
 import { SafeImage } from '../../components/ui/image'
-import { Navigation } from '../../components/ui/navigation'
 
 export default function FeaturesPage() {
   return (
     <main className="min-h-screen">
-      <Navigation />
-
       {/* Features Hero */}
       <section className="py-20 bg-gradient-to-b from-blue-50 to-white">
         <div className="container-custom">

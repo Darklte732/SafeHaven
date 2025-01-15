@@ -1,12 +1,9 @@
 import { SafeImage } from '../../components/ui/image'
 import Link from 'next/link'
-import { Navigation } from '../../components/ui/navigation'
 
 export default function PrivacyPolicyPage() {
   return (
     <main className="min-h-screen bg-white">
-      <Navigation />
-
       {/* Privacy Policy Content */}
       <section className="py-20">
         <div className="container-custom max-w-4xl">

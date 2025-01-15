@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { SafeImage } from '../components/ui/image'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
-import { Navigation } from '../components/ui/navigation'
 
 // Lazy load components that are not needed immediately
 const FAQItem = lazy(() => import('../components/ui/faq-item').then(mod => ({ default: mod.FAQItem })))
@@ -16,8 +15,6 @@ const inter = Inter({ subsets: ['latin'] })
 export default function Home() {
   return (
     <main className="min-h-screen pt-24">
-      <Navigation />
-
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-blue-50 to-white py-12 md:py-20">
         <div className="container-custom grid md:grid-cols-2 gap-8 md:gap-12 items-center px-4 md:px-6">
