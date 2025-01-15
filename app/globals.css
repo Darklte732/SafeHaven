@@ -19,7 +19,7 @@
   }
 
   .button-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-md transition-colors;
+    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-[#4F46E5] rounded-md shadow-sm hover:bg-[#4338CA] transition-colors;
   }
 
   .trust-badge {
@@ -35,7 +35,51 @@
   }
 
   .icon-container {
-    @apply w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-primary-600;
+    @apply w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#4F46E5];
+  }
+
+  .carrier-logo {
+    @apply h-12 object-contain grayscale hover:grayscale-0 transition-all duration-300;
+  }
+
+  .faq-item {
+    @apply border-b border-gray-200 py-6;
+  }
+
+  .faq-question {
+    @apply flex justify-between items-center w-full text-left text-lg font-medium text-gray-900 hover:text-[#4F46E5];
+  }
+
+  .faq-answer {
+    @apply mt-4 text-gray-600;
+  }
+
+  .badge-container {
+    @apply flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-sm text-sm text-gray-700;
+  }
+
+  .chat-message {
+    @apply max-w-[80%] rounded-lg p-4;
+  }
+
+  .chat-message-user {
+    @apply bg-[#4F46E5] text-white ml-4;
+  }
+
+  .chat-message-assistant {
+    @apply bg-gray-100 text-gray-900;
+  }
+
+  .chat-avatar {
+    @apply w-8 h-8 rounded-full flex items-center justify-center;
+  }
+
+  .chat-avatar-assistant {
+    @apply bg-[#4F46E5] mr-2;
+  }
+
+  .chat-avatar-user {
+    @apply bg-gray-200 ml-2;
   }
 }
 
@@ -66,11 +110,11 @@
 }
 
 /* Button styles */
-.button-primary {
-  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-primary-600 rounded-md shadow-sm hover:bg-primary-700 transition-colors;
+.button-cta {
+  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-[#4F46E5] rounded-md shadow-sm hover:bg-[#4338CA] transition-colors;
 }
 
-.button-secondary {
-  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary-600 bg-white border-2 border-primary-600 rounded-md shadow-sm hover:bg-gray-50 transition-colors;
+.button-outline {
+  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-[#4F46E5] bg-white border-2 border-[#4F46E5] rounded-md shadow-sm hover:bg-gray-50 transition-colors;
 }
 

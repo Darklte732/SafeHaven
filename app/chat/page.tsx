@@ -32,17 +32,42 @@ export default function ChatPage() {
         body: JSON.stringify({ messages: [...messages, userMessage] }),
       });
 
-      if (!response.ok) throw new Error('Failed to get response');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to get response');
+      }
 
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
     } catch (error) {
       console.error('Error:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: error instanceof Error ? error.message : 'Sorry, I encountered an error. Please try again.' 
+      }]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const quickQuestions = [
+    {
+      text: '🛡️ Learn about our insurance options',
+      query: 'What types of insurance do you offer?'
+    },
+    {
+      text: '💰 Get pricing information',
+      query: 'How much does final expense insurance cost?'
+    },
+    {
+      text: '📝 Understand the application process',
+      query: 'What is the application process like?'
+    },
+    {
+      text: '🏥 Learn about medical requirements',
+      query: 'Do you require a medical exam?'
+    }
+  ];
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white pt-24">
@@ -72,30 +97,15 @@ export default function ChatPage() {
                 <p className="text-lg">👋 Hi! I'm your SafeHaven Insurance assistant.</p>
                 <p>I can help you with:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mt-4">
-                  <button
-                    onClick={() => setInput("What types of insurance do you offer?")}
-                    className="p-4 text-left rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-                    🛡️ Learn about our insurance options
-                  </button>
-                  <button
-                    onClick={() => setInput("How much does final expense insurance cost?")}
-                    className="p-4 text-left rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-                    💰 Get pricing information
-                  </button>
-                  <button
-                    onClick={() => setInput("What is the application process like?")}
-                    className="p-4 text-left rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-                    📝 Understand the application process
-                  </button>
-                  <button
-                    onClick={() => setInput("Do you require a medical exam?")}
-                    className="p-4 text-left rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-                    🏥 Learn about medical requirements
-                  </button>
+                  {quickQuestions.map((item, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setInput(item.query)}
+                      className="p-4 text-left rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
+                      {item.text}
+                    </button>
+                  ))}
                 </div>
               </div>
             ) : (
@@ -107,7 +117,7 @@ export default function ChatPage() {
                   }`}
                 >
                   {message.role === 'assistant' && (
-                    <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center mr-2">
+                    <div className="chat-avatar chat-avatar-assistant">
                       <SafeImage
                         src="/images/logo.svg"
                         alt="AI"
@@ -118,16 +128,16 @@ export default function ChatPage() {
                     </div>
                   )}
                   <div
-                    className={`max-w-[80%] rounded-lg p-4 ${
+                    className={`chat-message ${
                       message.role === 'user'
-                        ? 'bg-primary-600 text-white ml-4'
-                        : 'bg-gray-100 text-gray-900'
+                        ? 'chat-message-user'
+                        : 'chat-message-assistant'
                     }`}
                   >
                     {message.content}
                   </div>
                   {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2">
+                    <div className="chat-avatar chat-avatar-user">
                       <span className="text-gray-600">You</span>
                     </div>
                   )}
@@ -147,7 +157,7 @@ export default function ChatPage() {
             <Button 
               type="submit" 
               disabled={isLoading}
-              className="bg-primary-600 hover:bg-primary-700 text-white"
+              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white"
             >
               {isLoading ? 'Sending...' : 'Send'}
             </Button>
@@ -156,17 +166,17 @@ export default function ChatPage() {
 
         {/* Trust Badges */}
         <div className="flex flex-wrap justify-center gap-6 mt-8">
-          <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-sm">
+          <div className="badge-container">
             <SafeImage src="/images/badges/secure.svg" alt="Secure Chat" width={24} height={24} />
-            <span className="text-sm">Secure Chat</span>
+            <span>Secure Chat</span>
           </div>
-          <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-sm">
+          <div className="badge-container">
             <SafeImage src="/images/badges/privacy.svg" alt="Privacy Protected" width={24} height={24} />
-            <span className="text-sm">Privacy Protected</span>
+            <span>Privacy Protected</span>
           </div>
-          <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-sm">
+          <div className="badge-container">
             <SafeImage src="/images/badges/guarantee.svg" alt="Expert Assistance" width={24} height={24} />
-            <span className="text-sm">Expert Assistance</span>
+            <span>Expert Assistance</span>
           </div>
         </div>
       </div>
