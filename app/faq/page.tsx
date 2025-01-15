@@ -10,29 +10,29 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: 'What is final expense insurance?',
-    answer: 'Final expense insurance is a type of whole life insurance designed to cover end-of-life expenses, including funeral costs, medical bills, and other outstanding debts. It provides peace of mind knowing your loved ones won't face financial burden during a difficult time.',
+    question: "What is final expense insurance?",
+    answer: "Final expense insurance is a type of whole life insurance designed to cover end-of-life expenses, including funeral costs, medical bills, and other outstanding debts. It provides peace of mind knowing your loved ones won't face financial burden during a difficult time."
   },
   {
-    question: 'How much coverage do I need?',
-    answer: 'Coverage needs vary by individual, but most people choose between $5,000 and $25,000. Consider factors like funeral costs (average $15,000-$16,000), outstanding medical bills, and other end-of-life expenses when determining your coverage amount.',
+    question: "How much coverage do I need?",
+    answer: "Coverage needs vary by individual, but most people choose between $5,000 and $25,000. Consider factors like funeral costs (average $15,000-$16,000), outstanding medical bills, and other end-of-life expenses when determining your coverage amount."
   },
   {
-    question: 'How quickly can I get coverage?',
-    answer: 'With our streamlined application process, you can get approved in as little as 24 hours. There's no medical exam required, and coverage can begin immediately upon approval and first premium payment.',
+    question: "How quickly can I get coverage?",
+    answer: "With our streamlined application process, you can get approved in as little as 24 hours. There's no medical exam required, and coverage can begin immediately upon approval and first premium payment."
   },
   {
-    question: 'Are there any waiting periods?',
-    answer: 'Most of our policies provide immediate coverage upon approval. However, some policies may have a 2-year limited benefit period for natural causes of death. Accidental death is covered from day one.',
+    question: "Are there any waiting periods?",
+    answer: "Most of our policies provide immediate coverage upon approval. However, some policies may have a 2-year limited benefit period for natural causes of death. Accidental death is covered from day one."
   },
   {
-    question: 'Can I cancel my policy?',
-    answer: 'Yes, you can cancel your policy at any time. We offer a 30-day money-back guarantee, allowing you to cancel within the first month for a full refund if you're not satisfied.',
+    question: "Can I cancel my policy?",
+    answer: "Yes, you can cancel your policy at any time. We offer a 30-day money-back guarantee, allowing you to cancel within the first month for a full refund if you're not satisfied."
   },
   {
-    question: 'How do I file a claim?',
-    answer: 'Filing a claim is simple. Contact our claims department at 1-844-628-4442, and our team will guide you through the process. Most claims are processed and paid within 24-48 hours of receiving all required documentation.',
-  },
+    question: "How do I file a claim?",
+    answer: "Filing a claim is simple. Contact our claims department at 1-844-628-4442, and our team will guide you through the process. Most claims are processed and paid within 24-48 hours of receiving all required documentation."
+  }
 ];
 
 export default function FAQPage() {
