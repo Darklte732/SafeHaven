@@ -35,7 +35,7 @@
   }
 
   .icon-container {
-    @apply w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-primary;
+    @apply w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-primary-600;
   }
 }
 
