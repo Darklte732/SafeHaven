@@ -67,10 +67,10 @@
 
 /* Button styles */
 .button-primary {
-  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-primary rounded-md shadow-sm hover:bg-primary/90 transition-colors;
+  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-primary-600 rounded-md shadow-sm hover:bg-primary-700 transition-colors;
 }
 
 .button-secondary {
-  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary bg-white border-2 border-primary rounded-md shadow-sm hover:bg-gray-50 transition-colors;
+  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary-600 bg-white border-2 border-primary-600 rounded-md shadow-sm hover:bg-gray-50 transition-colors;
 }
 
