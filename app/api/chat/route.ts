@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 
 type Role = 'user' | 'assistant';
 type Message = {
@@ -86,27 +87,54 @@ Remember to maintain a professional yet warm demeanor throughout the interaction
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY is not set in environment variables');
+    // Check CORS
+    const origin = req.headers.get('origin') || '';
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3002',
+      'https://safehaven-insurance.vercel.app',
+      process.env.NEXT_PUBLIC_SITE_URL,
+    ].filter(Boolean);
+
+    if (!allowedOrigins.includes(origin)) {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { messages } = await req.json();
+    // Check API key
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY is not set');
+      return NextResponse.json(
+        { error: 'The AI service is not properly configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
+
+    // Parse request body
+    const body = await req.json();
+    const { messages } = body;
 
     if (!messages || !Array.isArray(messages)) {
-      throw new Error('Invalid messages format');
+      return NextResponse.json(
+        { error: 'Invalid request format. Messages must be an array.' },
+        { status: 400 }
+      );
     }
 
-    // Convert the message history to Claude's format
+    // Validate messages
     const messageHistory = messages.map((msg: { role: string; content: string }): Message => {
       if (msg.role !== 'user' && msg.role !== 'assistant') {
-        throw new Error('Invalid role in message history');
+        throw new Error('Invalid role in message history. Role must be "user" or "assistant".');
+      }
+      if (typeof msg.content !== 'string' || !msg.content.trim()) {
+        throw new Error('Invalid message content. Content must be a non-empty string.');
       }
       return {
         role: msg.role as Role,
-        content: msg.content,
+        content: msg.content.trim(),
       };
     });
 
+    // Call Claude API
     const response = await anthropic.messages.create({
       model: 'claude-3-opus-20240229',
       max_tokens: 1024,
@@ -115,33 +143,65 @@ export async function POST(req: Request) {
       messages: messageHistory,
     });
 
-    // Check if the response has content and it's of type text
+    // Validate response
     const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type from Claude');
+    if (!content || content.type !== 'text' || !content.text) {
+      throw new Error('Invalid response from AI service');
     }
 
-    return NextResponse.json({
-      message: content.text,
-    });
+    // Return response with CORS headers
+    return new NextResponse(
+      JSON.stringify({ message: content.text }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      }
+    );
   } catch (error) {
     console.error('Chat API error:', error);
     
     let errorMessage = 'An error occurred while processing your request.';
+    let statusCode = 500;
     
     if (error instanceof Error) {
       if (error.message.includes('ANTHROPIC_API_KEY')) {
         errorMessage = 'The AI service is not properly configured. Please contact support.';
-      } else if (error.message.includes('Invalid messages')) {
-        errorMessage = 'Invalid request format. Please try again.';
+      } else if (error.message.includes('Invalid role') || error.message.includes('Invalid message content')) {
+        errorMessage = 'Invalid request format. Please check your message format.';
+        statusCode = 400;
       } else if (error.message.includes('rate limit')) {
         errorMessage = 'The service is temporarily busy. Please try again in a moment.';
+        statusCode = 429;
       }
     }
 
     return NextResponse.json(
       { error: errorMessage },
-      { status: 500 }
+      { 
+        status: statusCode,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
     );
   }
+}
+
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
 } 
