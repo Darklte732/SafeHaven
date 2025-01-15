@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 
 type Role = 'user' | 'assistant';
 type Message = {
@@ -87,19 +86,6 @@ Remember to maintain a professional yet warm demeanor throughout the interaction
 
 export async function POST(req: Request) {
   try {
-    // Check CORS
-    const origin = req.headers.get('origin') || '';
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3002',
-      'https://safehaven-insurance.vercel.app',
-      process.env.NEXT_PUBLIC_SITE_URL,
-    ].filter(Boolean);
-
-    if (!allowedOrigins.includes(origin)) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
-
     // Check API key
     if (!process.env.ANTHROPIC_API_KEY) {
       console.error('ANTHROPIC_API_KEY is not set');
@@ -149,19 +135,9 @@ export async function POST(req: Request) {
       throw new Error('Invalid response from AI service');
     }
 
-    // Return response with CORS headers
-    return new NextResponse(
-      JSON.stringify({ message: content.text }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      }
-    );
+    // Return response
+    return NextResponse.json({ message: content.text });
+
   } catch (error) {
     console.error('Chat API error:', error);
     
@@ -182,26 +158,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { error: errorMessage },
-      { 
-        status: statusCode,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        }
-      }
+      { status: statusCode }
     );
   }
-}
-
-export async function OPTIONS(request: Request) {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
-    },
-  });
 } 
