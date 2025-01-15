@@ -17,10 +17,10 @@ export function SafeImage({ src, alt, width, height, className = '' }: SafeImage
   if (error) {
     return (
       <div 
-        className={`flex items-center justify-center bg-gray-100 text-gray-400 ${className}`}
+        className={`flex items-center justify-center bg-gray-100 ${className}`}
         style={{ width, height }}
       >
-        {alt}
+        <span className="text-gray-400 text-sm">Image not found</span>
       </div>
     )
   }
