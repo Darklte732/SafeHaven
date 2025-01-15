@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Navigation } from '../../components/ui/navigation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
@@ -195,8 +194,6 @@ export default function QuotePage() {
   // Rest of the component remains the same, but add error display below each input
   return (
     <main className="min-h-screen bg-gray-50 pt-24 pb-12">
-      <Navigation />
-      
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="bg-white rounded-xl shadow-lg p-8">
           <h1 className="text-3xl font-bold text-center mb-2">Get Your Free Quote</h1>
