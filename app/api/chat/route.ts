@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic, { MessageParam } from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
 
 const anthropic = new Anthropic({
@@ -80,10 +80,18 @@ Remember to maintain a professional yet warm demeanor throughout the interaction
 
 export async function POST(req: Request) {
   try {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error('ANTHROPIC_API_KEY is not set in environment variables');
+    }
+
     const { messages } = await req.json();
 
+    if (!messages || !Array.isArray(messages)) {
+      throw new Error('Invalid messages format');
+    }
+
     // Convert the message history to Claude's format
-    const messageHistory = messages.map((msg: { role: string; content: string }) => ({
+    const messageHistory: MessageParam[] = messages.map((msg: { role: string; content: string }) => ({
       role: msg.role === 'user' ? 'user' : 'assistant',
       content: msg.content,
     }));
@@ -106,9 +114,22 @@ export async function POST(req: Request) {
       message: content.text,
     });
   } catch (error) {
-    console.error('Anthropic API error:', error);
+    console.error('Chat API error:', error);
+    
+    let errorMessage = 'An error occurred while processing your request.';
+    
+    if (error instanceof Error) {
+      if (error.message.includes('ANTHROPIC_API_KEY')) {
+        errorMessage = 'The AI service is not properly configured. Please contact support.';
+      } else if (error.message.includes('Invalid messages')) {
+        errorMessage = 'Invalid request format. Please try again.';
+      } else if (error.message.includes('rate limit')) {
+        errorMessage = 'The service is temporarily busy. Please try again in a moment.';
+      }
+    }
+
     return NextResponse.json(
-      { error: 'Failed to get response from AI' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
