@@ -49,7 +49,7 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <div className="mx-auto group w-full max-w-[600px] relative overflow-hidden rounded-lg shadow-xl">
+          <div className="mx-auto group animate-float w-full max-w-[600px] relative overflow-hidden rounded-lg shadow-xl">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent z-10"></div>
             <SafeImage
               src="/images/family-generations.svg"
@@ -67,7 +67,9 @@ export default function Home() {
         <div className="container-custom">
           <h2 className="text-center text-2xl font-bold text-gray-900 mb-8">Trusted By Leading Insurance Carriers</h2>
           <Suspense fallback={<div className="h-20" />}>
-            <CarrierLogos />
+            <div className="animate-float">
+              <CarrierLogos />
+            </div>
           </Suspense>
         </div>
       </section>
