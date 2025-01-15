@@ -1,54 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useChat } from 'ai/react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SafeImage } from '@/components/ui/image';
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const userMessage: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to get response');
-      }
-
-      const data = await response.json();
-      setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: error instanceof Error ? error.message : 'Sorry, I encountered an error. Please try again.' 
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
 
   const quickQuestions = [
     {
@@ -100,7 +59,7 @@ export default function ChatPage() {
                   {quickQuestions.map((item, index) => (
                     <button
                       key={index}
-                      onClick={() => setInput(item.query)}
+                      onClick={() => handleInputChange({ target: { value: item.query } } as any)}
                       className="p-4 text-left rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
                       {item.text}
@@ -149,7 +108,7 @@ export default function ChatPage() {
           <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
             <Input
               value={input}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Type your message..."
               disabled={isLoading}
               className="flex-1"

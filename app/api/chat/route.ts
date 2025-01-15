@@ -1,15 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
-import { NextResponse } from 'next/server';
-
-type Role = 'user' | 'assistant';
-type Message = {
-  role: Role;
-  content: string;
-};
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '',
-});
+import { StreamingTextResponse, LangChainStream } from 'ai';
+import { ChatAnthropic } from 'langchain/chat_models/anthropic';
+import { AIMessage, HumanMessage, SystemMessage } from 'langchain/schema';
 
 const SYSTEM_PROMPT = `You are Grace Santos, a licensed Insurance Agent at SafeHaven Insurance, specializing in Final Expense Insurance. You are an expert negotiator and closer with a mission to provide compassionate financial protection for families.
 
@@ -85,152 +76,43 @@ PRODUCT DETAILS:
 Remember to maintain a professional yet warm demeanor throughout the interaction, prioritizing the client's needs and comfort level.`;
 
 export async function POST(req: Request) {
-  console.log('Received chat request');
-  
   try {
-    // Log request details
-    const url = new URL(req.url);
-    console.log('Request URL:', url.toString());
-    console.log('Request method:', req.method);
-    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+    const { messages } = await req.json();
 
-    // Check API key
-    if (!process.env.ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY is not set');
-      return new Response(
-        JSON.stringify({ error: 'The AI service is not properly configured. Please contact support.' }),
-        {
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          },
-        }
-      );
-    }
+    const { stream, handlers } = LangChainStream();
 
-    // Parse and validate request body
-    let body;
-    try {
-      body = await req.json();
-      console.log('Received request body:', body);
-    } catch (error) {
-      console.error('Error parsing request body:', error);
-      return new Response(
-        JSON.stringify({ error: 'Invalid request body. Please check your input.' }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          },
-        }
-      );
-    }
-
-    const { messages } = body;
-
-    if (!messages || !Array.isArray(messages)) {
-      console.error('Invalid messages format:', messages);
-      return new Response(
-        JSON.stringify({ error: 'Invalid request format. Messages must be an array.' }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          },
-        }
-      );
-    }
-
-    // Validate messages
-    const messageHistory = messages.map((msg: { role: string; content: string }): Message => {
-      if (msg.role !== 'user' && msg.role !== 'assistant') {
-        throw new Error('Invalid role in message history. Role must be "user" or "assistant".');
-      }
-      if (typeof msg.content !== 'string' || !msg.content.trim()) {
-        throw new Error('Invalid message content. Content must be a non-empty string.');
-      }
-      return {
-        role: msg.role as Role,
-        content: msg.content.trim(),
-      };
-    });
-
-    console.log('Processed message history:', messageHistory);
-
-    // Call Claude API
-    console.log('Calling Claude API...');
-    const response = await anthropic.messages.create({
-      model: 'claude-3-opus-20240229',
-      max_tokens: 1024,
+    const llm = new ChatAnthropic({
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+      modelName: 'claude-3-opus-20240229',
+      streaming: true,
+      maxTokens: 1024,
       temperature: 0.7,
-      system: SYSTEM_PROMPT,
-      messages: messageHistory,
     });
 
-    console.log('Received Claude API response:', response);
-
-    // Validate response
-    const content = response.content[0];
-    if (!content || content.type !== 'text' || !content.text) {
-      throw new Error('Invalid response from AI service');
-    }
-
-    // Return successful response
-    return new Response(
-      JSON.stringify({ message: content.text }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      }
+    const chatHistory = messages.map((m: any) => 
+      m.role === 'user' 
+        ? new HumanMessage(m.content)
+        : new AIMessage(m.content)
     );
+
+    llm.call(
+      [new SystemMessage(SYSTEM_PROMPT), ...chatHistory],
+      {},
+      [handlers]
+    );
+
+    return new StreamingTextResponse(stream);
 
   } catch (error) {
     console.error('Chat API error:', error);
-    
-    let errorMessage = 'An error occurred while processing your request.';
-    let statusCode = 500;
-    
-    if (error instanceof Error) {
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      });
-
-      if (error.message.includes('ANTHROPIC_API_KEY')) {
-        errorMessage = 'The AI service is not properly configured. Please contact support.';
-      } else if (error.message.includes('Invalid role') || error.message.includes('Invalid message content')) {
-        errorMessage = 'Invalid request format. Please check your message format.';
-        statusCode = 400;
-      } else if (error.message.includes('rate limit')) {
-        errorMessage = 'The service is temporarily busy. Please try again in a moment.';
-        statusCode = 429;
-      }
-    }
-
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: 'An error occurred while processing your request. Please try again.' 
+      }),
       {
-        status: statusCode,
+        status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
       }
     );
