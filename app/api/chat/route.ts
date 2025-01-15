@@ -1,5 +1,11 @@
-import Anthropic, { MessageParam } from '@anthropic-ai/sdk';
+import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
+
+type Role = 'user' | 'assistant';
+type Message = {
+  role: Role;
+  content: string;
+};
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -91,10 +97,15 @@ export async function POST(req: Request) {
     }
 
     // Convert the message history to Claude's format
-    const messageHistory: MessageParam[] = messages.map((msg: { role: string; content: string }) => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content,
-    }));
+    const messageHistory = messages.map((msg: { role: string; content: string }): Message => {
+      if (msg.role !== 'user' && msg.role !== 'assistant') {
+        throw new Error('Invalid role in message history');
+      }
+      return {
+        role: msg.role as Role,
+        content: msg.content,
+      };
+    });
 
     const response = await anthropic.messages.create({
       model: 'claude-3-opus-20240229',
