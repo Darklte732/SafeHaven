@@ -113,21 +113,60 @@ export default function ChatPage() {
   const quickQuestions = [
     {
       text: '🛡️ Learn about our insurance options',
-      query: 'What types of insurance do you offer?'
+      query: 'What types of insurance do you offer?',
+      followUpOptions: [
+        'Tell me about final expense insurance',
+        'What are the coverage limits?',
+        'Do you offer term life insurance?'
+      ]
     },
     {
-      text: '💰 Get pricing information',
-      query: 'How much does final expense insurance cost?'
+      text: '💰 Get instant quote',
+      query: 'I would like to get a quote',
+      followUpOptions: [
+        'Start quote process',
+        'Show me sample rates',
+        'What information do I need?'
+      ]
     },
     {
       text: '📝 Understand the application process',
-      query: 'What is the application process like?'
+      query: 'What is the application process like?',
+      followUpOptions: [
+        'How long does it take?',
+        'What documents do I need?',
+        'Can I apply online?'
+      ]
     },
     {
       text: '🏥 Learn about medical requirements',
-      query: 'Do you require a medical exam?'
+      query: 'Do you require a medical exam?',
+      followUpOptions: [
+        'Are there health questions?',
+        'What conditions are covered?',
+        'Is there a waiting period?'
+      ]
+    },
+    {
+      text: '💬 Talk to an agent',
+      query: 'I would like to speak with an agent',
+      followUpOptions: [
+        'Schedule a call',
+        'Get agent contact info',
+        'Request callback'
+      ]
     }
   ];
+
+  // Add state for follow-up options
+  const [showFollowUps, setShowFollowUps] = useState<string | null>(null);
+
+  // Function to handle follow-up option click
+  const handleFollowUpClick = (option: string) => {
+    setInput(option);
+    setShowFollowUps(null);
+    handleSubmit(new Event('submit') as any);
+  };
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -211,13 +250,33 @@ export default function ChatPage() {
                 <p>I can help you with:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mt-4">
                   {quickQuestions.map((item, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setInput(item.query)}
-                      className="p-4 text-left rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                    >
-                      {item.text}
-                    </button>
+                    <div key={index} className="space-y-2">
+                      <button
+                        onClick={() => {
+                          setInput(item.query);
+                          setShowFollowUps(showFollowUps === item.query ? null : item.query);
+                        }}
+                        className="quick-option group"
+                      >
+                        {item.text}
+                        <span className="quick-option-arrow">
+                          →
+                        </span>
+                      </button>
+                      {showFollowUps === item.query && (
+                        <div className="follow-up-container">
+                          {item.followUpOptions.map((option, optIndex) => (
+                            <button
+                              key={optIndex}
+                              onClick={() => handleFollowUpClick(option)}
+                              className="follow-up-option"
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
