@@ -126,14 +126,80 @@ async function processQuoteRequest(messages: any[]) {
 
 async function getQuoteFromN8N(data: any) {
   try {
-    const response = await fetch(process.env.N8N_WEBHOOK_URL || '', {
+    // Format height from 5'9 to 69 inches
+    if (typeof data.height === 'string' && data.height.includes("'")) {
+      const [feet, inches] = data.height.replace("'", "").split(" ");
+      data.height = parseInt(feet) * 12 + parseInt(inches || '0');
+    }
+
+    // Calculate coverage amounts (base amount and two higher tiers)
+    const baseAmount = data.coverageAmount;
+    const coverageAmounts = [
+      baseAmount,
+      Math.min(baseAmount + 5000, 25000),
+      Math.min(baseAmount + 10000, 25000)
+    ].filter((amount, index, self) => self.indexOf(amount) === index); // Remove duplicates
+
+    // Determine recommended carrier based on health conditions
+    let recommendedCarrier = 'Mutual of Omaha'; // Default for healthy applicants
+    const healthIssues = [
+      data.heartConditions,
+      data.lungConditions,
+      data.highBloodPressure,
+      data.cancerHistory,
+      data.diabetes,
+      data.strokeHistory,
+      data.hospitalStays
+    ].filter(Boolean).length;
+
+    if (healthIssues >= 3) {
+      recommendedCarrier = 'AIG';
+    } else if (healthIssues >= 1) {
+      recommendedCarrier = 'American Amicable';
+    }
+
+    // Format data for n8n webhook
+    const formattedData = {
+      State: data.state,
+      Gender: data.gender,
+      DateOfBirth: data.dateOfBirth,
+      Height: data.height,
+      Weight: data.weight,
+      TobaccoUse: data.tobaccoUse ? 'Yes' : 'No',
+      CoverageAmounts: coverageAmounts,
+      RecommendedCarrier: recommendedCarrier,
+      HealthProfile: {
+        Medications: data.medications || [],
+        HeartConditions: data.heartConditions || false,
+        LungConditions: data.lungConditions || false,
+        HighBloodPressure: data.highBloodPressure || false,
+        CancerHistory: data.cancerHistory || false,
+        Diabetes: data.diabetes || false,
+        StrokeHistory: data.strokeHistory || false,
+        HospitalStays: data.hospitalStays || false
+      }
+    };
+
+    console.log('Sending formatted data to n8n:', formattedData);
+    const response = await fetch('https://3be3-45-177-2-86.ngrok-free.app/webhook/MooQuoting', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(formattedData),
     });
-    return await response.json();
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const quoteResponse = await response.json();
+    return {
+      ...quoteResponse,
+      recommendedCarrier,
+      coverageAmounts,
+      processingTime: '2 minutes'
+    };
   } catch (error) {
     console.error('Error getting quote from n8n:', error);
     throw error;
@@ -211,7 +277,17 @@ Remember:
 - Never proceed without explicit opt-in
 - Never make up quotes
 - Ask only one question at a time
-- Keep responses brief and focused`;
+- Keep responses brief and focused
+
+COVERAGE AMOUNT EXPLANATION:
+When asking for coverage amount, explain that you'll provide quotes for three coverage levels:
+1. Their requested amount
+2. A mid-tier option ($5,000 more than requested)
+3. A premium option ($10,000 more than requested, up to $25,000)
+
+QUOTE GENERATION MESSAGE:
+When all information is collected, say:
+"Thank you for providing all the necessary information. I'll now generate quotes for [coverage amounts]. Based on your health profile, I recommend [carrier name] as the best fit for your situation. This will take approximately 2 minutes to process all quotes. Please wait while I prepare your personalized quotes..."`;
 
 export async function POST(req: Request) {
   try {
@@ -241,6 +317,9 @@ export async function POST(req: Request) {
     if (quoteResult.missingFields) {
       systemPrompt += `\n\nMISSING FIELDS:\n${quoteResult.missingFields.join('\n')}`;
     }
+    if (quoteResult.complete) {
+      systemPrompt += `\n\nQUOTE STATUS: Processing\nESTIMATED TIME: 2 minutes\nRECOMMENDED CARRIER: ${quoteResult.quote.recommendedCarrier}`;
+    }
 
     console.log('Sending request to Claude');
     const response = await anthropic.messages.create({
@@ -262,7 +341,9 @@ export async function POST(req: Request) {
       JSON.stringify({
         role: 'assistant',
         content: content.text,
-        quoteResult
+        quoteResult,
+        loading: quoteResult.complete ? true : false,
+        estimatedTime: quoteResult.complete ? '2 minutes' : null
       }),
       {
         headers: {
