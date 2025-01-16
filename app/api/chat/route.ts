@@ -96,8 +96,8 @@ export async function POST(req: Request) {
 
     console.log('Sending request to Claude');
     const response = await anthropic.messages.create({
-      model: 'claude-3-opus-20240229',
-      max_tokens: 4096,
+      model: 'claude-3-sonnet-20240229',
+      max_tokens: 2048,
       temperature: 0.7,
       system: SYSTEM_PROMPT,
       messages: formattedMessages,
