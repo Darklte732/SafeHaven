@@ -296,7 +296,12 @@ When asking for coverage amount, explain that you'll provide quotes for three co
 
 QUOTE GENERATION MESSAGE:
 When all information is collected, say:
-"Thank you for providing all the necessary information. I'll now generate quotes for [coverage amounts]. Based on your health profile, I recommend [carrier name] as the best fit for your situation. This will take approximately 2 minutes to process all quotes. Please wait while I prepare your personalized quotes..."`;
+"Thank you for providing all the necessary information. I'll now generate quotes for [coverage amounts]. This will take approximately 2 minutes to process. You'll see a countdown timer while I:
+1. Submit your information
+2. Process quotes with multiple carriers
+3. Retrieve your final rates
+
+Please wait while I prepare your personalized quotes..."`;
 
 export async function POST(req: Request) {
   try {
@@ -367,7 +372,30 @@ export async function POST(req: Request) {
         quoteProcessing,
         webhookResponse,
         loading: quoteProcessing,
-        estimatedTime: quoteProcessing ? '2 minutes' : null
+        estimatedTime: quoteProcessing ? '2 minutes' : null,
+        loadingState: quoteProcessing ? {
+          status: 'processing',
+          startTime: Date.now(),
+          endTime: Date.now() + 120000, // 2 minutes in milliseconds
+          message: 'Generating your personalized quotes...',
+          steps: [
+            {
+              name: 'Submitting information',
+              duration: 5000,
+              status: 'completed'
+            },
+            {
+              name: 'Processing quotes',
+              duration: 110000,
+              status: 'in_progress'
+            },
+            {
+              name: 'Retrieving final rates',
+              duration: 5000,
+              status: 'pending'
+            }
+          ]
+        } : null
       }),
       {
         headers: {
