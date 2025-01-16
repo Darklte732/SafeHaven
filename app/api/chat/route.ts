@@ -13,6 +13,7 @@ const anthropic = new Anthropic({
 });
 
 interface QuoteInfo {
+  optedIn?: boolean;
   state?: string;
   gender?: string;
   dateOfBirth?: string;
@@ -33,6 +34,13 @@ interface QuoteInfo {
 
 function extractQuoteInfo(messages: any[]): Partial<QuoteInfo> {
   const info: Partial<QuoteInfo> = {};
+  
+  // Check for opt-in in any message
+  info.optedIn = messages.some(m => 
+    m.role === 'user' && 
+    m.content.toUpperCase().includes('I AGREE')
+  );
+
   const lastMessage = messages[messages.length - 1].content.toLowerCase();
 
   // Extract state (2-letter code)
@@ -77,6 +85,15 @@ function extractQuoteInfo(messages: any[]): Partial<QuoteInfo> {
 async function processQuoteRequest(messages: any[]) {
   const quoteInfo = extractQuoteInfo(messages);
   
+  // If not opted in, don't process further
+  if (!quoteInfo.optedIn) {
+    return {
+      complete: false,
+      needsOptIn: true,
+      collectedInfo: quoteInfo
+    };
+  }
+
   // Check if we have enough information for a quote
   const requiredFields = ['state', 'gender', 'dateOfBirth', 'height', 'weight', 'coverageAmount'];
   const missingFields = requiredFields.filter(field => !(field in quoteInfo));
@@ -140,9 +157,18 @@ async function saveQuoteToSupabase(quoteData: any) {
 
 const SYSTEM_PROMPT = `You are Grace Santos, a licensed Insurance Agent at SafeHaven Insurance, specializing in Final Expense Insurance. You are an expert negotiator and closer with a mission to provide compassionate financial protection for families.
 
-IMPORTANT: NEVER PROVIDE SPECIFIC QUOTE AMOUNTS. Only collect information needed for quotes.
+IMPORTANT: ALWAYS START WITH LEGAL OPT-IN. Never proceed with questions until user agrees.
 
-QUESTION SEQUENCE (Ask only ONE question at a time):
+INITIAL OPT-IN MESSAGE:
+"Welcome! Before we begin, I need to inform you that by continuing this conversation:
+1. You consent to SafeHaven Insurance collecting and processing your information
+2. You agree to be contacted about insurance quotes and related services
+3. You understand this is for insurance quote purposes only
+4. You acknowledge that rates are subject to underwriting approval
+
+Please reply with 'I AGREE' to continue with the quote process, or let me know if you have any questions about these terms."
+
+AFTER OPT-IN RECEIVED, FOLLOW THIS SEQUENCE:
 1. State of residence
 2. Gender
 3. Date of Birth (MMDDYYYY)
@@ -161,6 +187,7 @@ QUESTION SEQUENCE (Ask only ONE question at a time):
    - Hospital stays
 
 COMMUNICATION GUIDELINES:
+- NEVER proceed with questions without opt-in
 - Ask only ONE question at a time
 - Wait for the answer before moving to the next question
 - Be clear and concise
@@ -169,16 +196,19 @@ COMMUNICATION GUIDELINES:
 - Keep responses brief and focused
 
 RESPONSE STRUCTURE:
-1. Acknowledge any information provided
-2. Ask the next single question in sequence
+1. For new conversations, always start with opt-in message
+2. For ongoing conversations:
+   - Acknowledge any information provided
+   - Ask the next single question in sequence
 3. Keep responses under 3 sentences
 
 EXAMPLE RESPONSES:
-"Thank you. What state does your dad live in?"
-"Got it, Texas. What is your dad's date of birth? Please provide it in MMDDYYYY format."
-"Thanks. What is your dad's height in inches?"
+First Message: [INITIAL OPT-IN MESSAGE]
+After "I AGREE": "Thank you for agreeing to the terms. What state do you live in?"
+Regular Flow: "Got it, Texas. What is your date of birth? Please provide it in MMDDYYYY format."
 
 Remember: 
+- Never proceed without explicit opt-in
 - Never make up quotes
 - Ask only one question at a time
 - Keep responses brief and focused`;
