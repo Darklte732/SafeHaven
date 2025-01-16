@@ -1,6 +1,7 @@
-import { StreamingTextResponse, LangChainStream } from 'ai';
-import { ChatAnthropic } from 'langchain/chat_models/anthropic';
-import { AIMessage, HumanMessage, SystemMessage } from 'langchain/schema';
+import { StreamingTextResponse } from 'ai';
+import { ChatAnthropic } from '@langchain/anthropic';
+import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { experimental_StreamData } from 'ai';
 
 const SYSTEM_PROMPT = `You are Grace Santos, a licensed Insurance Agent at SafeHaven Insurance, specializing in Final Expense Insurance. You are an expert negotiator and closer with a mission to provide compassionate financial protection for families.
 
@@ -78,15 +79,16 @@ Remember to maintain a professional yet warm demeanor throughout the interaction
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
+    const data = new experimental_StreamData();
 
-    const { stream, handlers } = LangChainStream();
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error('ANTHROPIC_API_KEY is not set');
+    }
 
     const llm = new ChatAnthropic({
-      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: process.env.ANTHROPIC_API_KEY,
       modelName: 'claude-3-opus-20240229',
       streaming: true,
-      maxTokens: 1024,
-      temperature: 0.7,
     });
 
     const chatHistory = messages.map((m: any) => 
@@ -95,13 +97,12 @@ export async function POST(req: Request) {
         : new AIMessage(m.content)
     );
 
-    llm.call(
-      [new SystemMessage(SYSTEM_PROMPT), ...chatHistory],
-      {},
-      [handlers]
-    );
+    const stream = await llm.stream([
+      new SystemMessage(SYSTEM_PROMPT),
+      ...chatHistory,
+    ]);
 
-    return new StreamingTextResponse(stream);
+    return new StreamingTextResponse(stream, {}, data);
 
   } catch (error) {
     console.error('Chat API error:', error);

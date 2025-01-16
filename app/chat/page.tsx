@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { SafeImage } from '@/components/ui/image';
 
 export default function ChatPage() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+    api: '/api/chat',
+  });
 
   const quickQuestions = [
     {
