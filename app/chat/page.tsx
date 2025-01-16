@@ -18,20 +18,22 @@ interface ApiResponse {
   details?: string;
   loading?: boolean;
   estimatedTime?: string;
-  loadingState?: {
-    status: string;
-    startTime: number;
-    endTime: number;
-    message: string;
-    steps: {
-      name: string;
-      duration: number;
-      status: string;
-    }[];
-  };
+  loadingState?: LoadingState;
 }
 
-function LoadingIndicator({ loadingState }: { loadingState: ApiResponse['loadingState'] }) {
+interface LoadingState {
+  status: string;
+  startTime: number;
+  endTime: number;
+  message: string;
+  steps: {
+    name: string;
+    duration: number;
+    status: string;
+  }[];
+}
+
+function LoadingIndicator({ loadingState }: { loadingState: LoadingState | null }) {
   const [timeLeft, setTimeLeft] = useState(120);
 
   useEffect(() => {
@@ -96,7 +98,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loadingState, setLoadingState] = useState<ApiResponse['loadingState']>(null);
+  const [loadingState, setLoadingState] = useState<LoadingState | undefined>(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -280,6 +282,30 @@ export default function ChatPage() {
             </div>
           </form>
         </Card>
+
+        {/* Video Section with Arrows */}
+        <div className="relative mt-12 mb-12">
+          {/* Left Arrow */}
+          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-16 hidden md:block">
+            <div className="flex items-center">
+              <div className="w-16 h-2 bg-blue-600"></div>
+              <div className="w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-12 border-l-blue-600"></div>
+            </div>
+          </div>
+
+          {/* Right Arrow */}
+          <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-16 hidden md:block">
+            <div className="flex items-center">
+              <div className="w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-12 border-r-blue-600"></div>
+              <div className="w-16 h-2 bg-blue-600"></div>
+            </div>
+          </div>
+
+          {/* Video Placeholder */}
+          <div className="w-full aspect-video bg-gray-100 rounded-lg shadow-lg flex items-center justify-center">
+            <span className="text-gray-500 text-lg">Video Coming Soon</span>
+          </div>
+        </div>
 
         {/* Trust Badges */}
         <div className="flex flex-wrap justify-center gap-6 mt-8">
