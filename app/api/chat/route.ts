@@ -23,10 +23,10 @@ interface QuoteInfo {
   gender: string;
   dateOfBirth: string;
   height: string;
-  weight: number;
+  weight: string;
   nicotineUse: boolean;
   coverageAmount: string;
-  phoneNumber?: string;
+  phoneNumber: string;
   optedIn?: boolean;
   tobaccoUse?: boolean;
   heartConditions?: boolean;
@@ -38,65 +38,88 @@ interface QuoteInfo {
   hospitalStays?: boolean;
 }
 
+interface ProcessQuoteResult {
+  collectedInfo: QuoteInfo;
+  complete: boolean;
+  missingFields?: string[];
+}
+
 interface PartialQuoteInfo extends Partial<QuoteInfo> {}
 
-function extractQuoteInfo(messages: any[]): Partial<QuoteInfo> {
+function extractQuoteInfo(messages: Message[]): Partial<QuoteInfo> {
   const info: Partial<QuoteInfo> = {};
   
-  // Check for opt-in in any message
-  info.optedIn = messages.some(m => 
-    m.role === 'user' && 
-    m.content.toUpperCase().includes('I AGREE')
-  );
-
-  const lastMessage = messages[messages.length - 1].content.toLowerCase();
-
-  // Extract phone number (XXX-XXX-XXXX)
-  const phoneMatch = lastMessage.match(/\b\d{3}-\d{3}-\d{4}\b/);
-  if (phoneMatch) info.phoneNumber = phoneMatch[0];
-
-  // Extract state (2-letter code)
-  const stateMatch = lastMessage.match(/\b[A-Z]{2}\b/i);
-  if (stateMatch) info.state = stateMatch[0].toUpperCase();
-
-  // Extract gender
-  if (lastMessage.includes('male')) info.gender = 'male';
-  if (lastMessage.includes('female')) info.gender = 'female';
-
-  // Extract date of birth (MMDDYYYY)
-  const dobMatch = lastMessage.match(/\b\d{8}\b/);
-  if (dobMatch) info.dateOfBirth = dobMatch[0];
-
-  // Extract height and weight
-  const heightMatch = lastMessage.match(/(\d+)\s*(?:inch|inches|in)/i);
-  if (heightMatch) info.height = parseInt(heightMatch[1]);
+  for (const message of messages) {
+    if (message.role === 'user') {
+      const content = message.content.toLowerCase();
+      
+      // Extract state
+      if (content.includes('state')) {
+        info.state = content.match(/state(?:\s+is)?\s+(\w+)/i)?.[1] || '';
+      }
+      
+      // Extract gender
+      if (content.includes('gender')) {
+        info.gender = content.match(/gender(?:\s+is)?\s+(\w+)/i)?.[1] || '';
+      }
+      
+      // Extract date of birth
+      if (content.includes('birth')) {
+        info.dateOfBirth = content.match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || '';
+      }
+      
+      // Extract height (convert to string)
+      if (content.includes('height')) {
+        const heightMatch = content.match(/height(?:\s+is)?\s+(\d+)/i);
+        info.height = heightMatch ? String(heightMatch[1]) : '';
+      }
+      
+      // Extract weight (convert to string)
+      if (content.includes('weight')) {
+        const weightMatch = content.match(/weight(?:\s+is)?\s+(\d+)/i);
+        info.weight = weightMatch ? String(weightMatch[1]) : '';
+      }
+      
+      // Extract coverage amount (convert to string)
+      if (content.includes('coverage')) {
+        const amountMatch = content.match(/\$?(\d+(?:,\d{3})*)/);
+        info.coverageAmount = amountMatch ? String(amountMatch[1].replace(/,/g, '')) : '';
+      }
+      
+      // Extract nicotine use
+      if (content.includes('nicotine') || content.includes('tobacco')) {
+        info.nicotineUse = content.includes('yes');
+      }
+    }
+  }
   
-  const weightMatch = lastMessage.match(/(\d+)\s*(?:pound|pounds|lbs)/i);
-  if (weightMatch) info.weight = parseInt(weightMatch[1]);
-
-  // Extract tobacco/nicotine use
-  info.tobaccoUse = lastMessage.includes('yes') && lastMessage.includes('tobacco');
-  info.nicotineUse = lastMessage.includes('yes') && lastMessage.includes('nicotine');
-
-  // Extract coverage amount
-  const coverageMatch = lastMessage.match(/(\d+),?000/);
-  if (coverageMatch) info.coverageAmount = parseInt(coverageMatch[0].replace(',', ''));
-
-  // Extract health conditions
-  info.heartConditions = lastMessage.includes('heart') || lastMessage.includes('stints');
-  info.lungConditions = lastMessage.includes('asthma') || lastMessage.includes('copd');
-  info.highBloodPressure = lastMessage.includes('blood pressure') || lastMessage.includes('hypertension');
-  info.cancerHistory = lastMessage.includes('cancer');
-  info.diabetes = lastMessage.includes('diabetes');
-  info.strokeHistory = lastMessage.includes('stroke') || lastMessage.includes('tia');
-  info.hospitalStays = lastMessage.includes('hospital');
-
   return info;
 }
 
-async function processQuoteRequest(messages: any[]): Promise<{ collectedInfo: QuoteInfo }> {
-  const quoteInfo = extractQuoteInfo(messages) as QuoteInfo;
-  return { collectedInfo: quoteInfo };
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+async function processQuoteRequest(messages: Message[]): Promise<ProcessQuoteResult> {
+  const quoteInfo = extractQuoteInfo(messages);
+  
+  // Convert number values to strings
+  const processedQuoteInfo = {
+    ...quoteInfo,
+    height: String(quoteInfo.height || ''),
+    weight: String(quoteInfo.weight || ''),
+    coverageAmount: String(quoteInfo.coverageAmount || ''),
+  };
+
+  const requiredFields = ['state', 'gender', 'dateOfBirth', 'height', 'weight', 'coverageAmount'];
+  const missingFields = requiredFields.filter(field => !processedQuoteInfo[field as keyof QuoteInfo]);
+
+  return {
+    collectedInfo: processedQuoteInfo as QuoteInfo,
+    complete: missingFields.length === 0,
+    missingFields: missingFields.length > 0 ? missingFields : undefined
+  };
 }
 
 async function getQuoteFromN8N(data: QuoteInfo): Promise<NextResponse> {
@@ -154,18 +177,44 @@ async function getQuoteFromN8N(data: QuoteInfo): Promise<NextResponse> {
   }
 }
 
-function saveQuoteToSupabase(quoteData: any) {
+interface QuoteData {
+  state: string;
+  gender: string;
+  dateOfBirth: string;
+  height: string;
+  weight: string;
+  nicotineUse: boolean;
+  coverageAmount: string;
+  phoneNumber: string;
+  optedIn?: boolean;
+  tobaccoUse?: boolean;
+  heartConditions?: boolean;
+  lungConditions?: boolean;
+  highBloodPressure?: boolean;
+  cancerHistory?: boolean;
+  diabetes?: boolean;
+  strokeHistory?: boolean;
+  hospitalStays?: boolean;
+  created_at?: string;
+}
+
+async function saveQuoteToSupabase(quoteData: QuoteData) {
   try {
     const { data, error } = await supabase
       .from('quotes')
       .insert([quoteData])
-      .select();
+      .select()
+      .single();
 
-    if (error) throw error;
-    return data;
+    if (error) {
+      console.error('Error saving quote:', error);
+      return null;
+    }
+
+    return data as QuoteData;
   } catch (error) {
-    console.error('Error saving quote to Supabase:', error);
-    throw error;
+    console.error('Error in saveQuoteToSupabase:', error);
+    return null;
   }
 }
 
@@ -251,124 +300,47 @@ If user seems impatient: "I understand you're eager to see the quotes. We're alm
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-    console.log('Received messages:', messages);
-
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new Error('ANTHROPIC_API_KEY is not set');
-    }
-
-    // Process quote request first
-    const quoteResult = processQuoteRequest(messages);
-    console.log('Quote processing result:', quoteResult);
-
-    // If we have complete information, initiate the quote process before getting AI response
-    let quoteProcessing = false;
-    let webhookResponse = null;
-    if (quoteResult.complete) {
-      quoteProcessing = true;
-      try {
-        webhookResponse = getQuoteFromN8N(quoteResult.collectedInfo);
-        console.log('Webhook response:', webhookResponse);
-      } catch (error) {
-        console.error('Error from webhook:', error);
-      }
-    }
-
-    // Format messages for Claude
-    const formattedMessages = messages.map((m: any) => ({
-      role: m.role === 'user' ? 'user' : 'assistant',
-      content: m.content,
-    }));
-
-    // Add quote result to system prompt if available
-    let systemPrompt = SYSTEM_PROMPT;
-    if (quoteResult.collectedInfo) {
-      systemPrompt += `\n\nCURRENT COLLECTED INFORMATION:\n${JSON.stringify(quoteResult.collectedInfo, null, 2)}`;
-    }
-    if (quoteResult.missingFields) {
-      systemPrompt += `\n\nMISSING FIELDS:\n${quoteResult.missingFields.join('\n')}`;
-    }
-    if (quoteProcessing) {
-      systemPrompt += `\n\nQUOTE STATUS: Processing\nESTIMATED TIME: 2 minutes\nPLEASE RESPOND WITH THE PROCESSING MESSAGE`;
-    }
-
-    console.log('Sending request to Claude');
-    const response = await anthropic.messages.create({
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 2048,
-      temperature: 0.5,
-      system: systemPrompt,
-      messages: formattedMessages,
-    });
-
-    console.log('Received response from Claude');
-    const content = response.content[0];
     
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type from Claude');
+    // Process the quote request
+    const quoteResult = await processQuoteRequest(messages);
+    
+    if (!quoteResult.complete) {
+      return NextResponse.json({
+        role: 'assistant',
+        content: `I need some more information to provide accurate quotes. Please provide: ${quoteResult.missingFields?.join(', ')}`
+      });
     }
 
-    return new Response(
-      JSON.stringify({
-        role: 'assistant',
-        content: content.text,
-        quoteResult,
-        quoteProcessing,
-        webhookResponse,
-        loading: quoteProcessing,
-        estimatedTime: quoteProcessing ? '2 minutes' : null,
-        loadingState: quoteProcessing ? {
-          status: 'processing',
-          startTime: Date.now(),
-          endTime: Date.now() + 120000, // 2 minutes in milliseconds
-          message: 'Generating your personalized quotes...',
-          steps: [
-            {
-              name: 'Submitting information',
-              duration: 5000,
-              status: 'completed'
-            },
-            {
-              name: 'Processing quotes',
-              duration: 110000,
-              status: 'in_progress'
-            },
-            {
-              name: 'Retrieving final rates',
-              duration: 5000,
-              status: 'pending'
-            }
-          ]
-        } : null
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        },
-      }
-    );
+    // Format data for initial request
+    const formattedData = {
+      ...quoteResult.collectedInfo,
+      // Add any additional formatting here
+    };
 
-  } catch (error) {
-    console.error('Chat API error:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to get response from AI',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        },
+    try {
+      // Save quote to Supabase
+      const savedQuote = await saveQuoteToSupabase(formattedData);
+      if (!savedQuote) {
+        throw new Error('Failed to save quote');
       }
-    );
+
+      return NextResponse.json({
+        role: 'assistant',
+        content: 'Thank you for providing all the information. I will process your quote request now.'
+      });
+    } catch (error) {
+      console.error('Error in quote processing:', error);
+      return NextResponse.json({
+        role: 'assistant',
+        content: 'I apologize, but there was an error processing your quote. Please try again later.'
+      });
+    }
+  } catch (error) {
+    console.error('Error in POST handler:', error);
+    return NextResponse.json({
+      role: 'assistant',
+      content: 'I apologize, but I encountered an error. Please try again.'
+    });
   }
 }
 
@@ -381,4 +353,4 @@ export async function OPTIONS(request: Request) {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
-} 
+}
