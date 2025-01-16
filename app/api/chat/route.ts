@@ -126,10 +126,10 @@ async function processQuoteRequest(messages: any[]) {
 
 async function getQuoteFromN8N(data: any) {
   try {
-    // Format height from 5'9 to 69 inches
+    // Format height from 5'9 to 59
     if (typeof data.height === 'string' && data.height.includes("'")) {
       const [feet, inches] = data.height.replace("'", "").split(" ");
-      data.height = parseInt(feet) * 12 + parseInt(inches || '0');
+      data.height = parseInt(feet) * 10 + parseInt(inches || '0');
     }
 
     // Calculate coverage amounts (base amount and two higher tiers)
