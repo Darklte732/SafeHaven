@@ -164,36 +164,45 @@ async function getQuoteFromN8N(data: any) {
     };
 
     console.log('Sending formatted data to n8n:', formattedData);
+    
+    // First webhook call - MooQuoting
     const response = await fetch('https://3be3-45-177-2-86.ngrok-free.app/webhook/MooQuoting', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(formattedData),
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error('MooQuoting webhook error:', response.status, await response.text());
+      throw new Error(`MooQuoting webhook error! status: ${response.status}`);
     }
 
     // Wait for 2 minutes
+    console.log('Waiting 2 minutes before retrieving quotes...');
     await new Promise(resolve => setTimeout(resolve, 120000));
 
-    // Make second webhook call to get quotes
+    // Second webhook call - GettingQuote
     console.log('Retrieving quotes with phone number:', data.phoneNumber);
     const quotesResponse = await fetch('https://3be3-45-177-2-86.ngrok-free.app/webhook/GettingQuote', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({ phone: data.phoneNumber }),
     });
 
     if (!quotesResponse.ok) {
-      throw new Error(`HTTP error! status: ${quotesResponse.status}`);
+      console.error('GettingQuote webhook error:', quotesResponse.status, await quotesResponse.text());
+      throw new Error(`GettingQuote webhook error! status: ${quotesResponse.status}`);
     }
 
     const quoteResponse = await quotesResponse.json();
+    console.log('Quote response received:', quoteResponse);
+    
     return {
       ...quoteResponse,
       coverageAmounts,
@@ -299,9 +308,22 @@ export async function POST(req: Request) {
       throw new Error('ANTHROPIC_API_KEY is not set');
     }
 
-    // Process quote request
+    // Process quote request first
     const quoteResult = await processQuoteRequest(messages);
     console.log('Quote processing result:', quoteResult);
+
+    // If we have complete information, initiate the quote process before getting AI response
+    let quoteProcessing = false;
+    let webhookResponse = null;
+    if (quoteResult.complete) {
+      quoteProcessing = true;
+      try {
+        webhookResponse = await getQuoteFromN8N(quoteResult.collectedInfo);
+        console.log('Webhook response:', webhookResponse);
+      } catch (error) {
+        console.error('Error from webhook:', error);
+      }
+    }
 
     // Format messages for Claude
     const formattedMessages = messages.map((m: any) => ({
@@ -317,8 +339,8 @@ export async function POST(req: Request) {
     if (quoteResult.missingFields) {
       systemPrompt += `\n\nMISSING FIELDS:\n${quoteResult.missingFields.join('\n')}`;
     }
-    if (quoteResult.complete) {
-      systemPrompt += `\n\nQUOTE STATUS: Processing\nESTIMATED TIME: 2 minutes\nRECOMMENDED CARRIER: ${quoteResult.quote.recommendedCarrier}`;
+    if (quoteProcessing) {
+      systemPrompt += `\n\nQUOTE STATUS: Processing\nESTIMATED TIME: 2 minutes\nPLEASE RESPOND WITH THE PROCESSING MESSAGE`;
     }
 
     console.log('Sending request to Claude');
@@ -342,8 +364,10 @@ export async function POST(req: Request) {
         role: 'assistant',
         content: content.text,
         quoteResult,
-        loading: quoteResult.complete ? true : false,
-        estimatedTime: quoteResult.complete ? '2 minutes' : null
+        quoteProcessing,
+        webhookResponse,
+        loading: quoteProcessing,
+        estimatedTime: quoteProcessing ? '2 minutes' : null
       }),
       {
         headers: {
