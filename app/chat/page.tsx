@@ -1,15 +1,25 @@
 'use client';
 
-import { useChat } from 'ai/react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SafeImage } from '@/components/ui/image';
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface ApiResponse {
+  role: 'assistant';
+  content: string;
+}
+
 export default function ChatPage() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/chat',
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const quickQuestions = [
     {
@@ -29,6 +39,44 @@ export default function ChatPage() {
       query: 'Do you require a medical exam?'
     }
   ];
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data: ApiResponse = await response.json();
+      setMessages(prev => [...prev, data]);
+    } catch (error) {
+      console.error('Error:', error);
+      // Optionally show error to user
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
+    setInput(e.target.value);
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white pt-24">
@@ -61,7 +109,7 @@ export default function ChatPage() {
                   {quickQuestions.map((item, index) => (
                     <button
                       key={index}
-                      onClick={() => handleInputChange({ target: { value: item.query } } as any)}
+                      onClick={() => setInput(item.query)}
                       className="p-4 text-left rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
                       {item.text}

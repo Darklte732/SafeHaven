@@ -1,7 +1,8 @@
-import { StreamingTextResponse } from 'ai';
-import { ChatAnthropic } from '@langchain/anthropic';
-import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { experimental_StreamData } from 'ai';
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
+});
 
 const SYSTEM_PROMPT = `You are Grace Santos, a licensed Insurance Agent at SafeHaven Insurance, specializing in Final Expense Insurance. You are an expert negotiator and closer with a mission to provide compassionate financial protection for families.
 
@@ -79,30 +80,38 @@ Remember to maintain a professional yet warm demeanor throughout the interaction
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-    const data = new experimental_StreamData();
 
     if (!process.env.ANTHROPIC_API_KEY) {
       throw new Error('ANTHROPIC_API_KEY is not set');
     }
 
-    const llm = new ChatAnthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-      modelName: 'claude-3-opus-20240229',
-      streaming: true,
+    const response = await anthropic.messages.create({
+      model: 'claude-3-opus-20240229',
+      max_tokens: 4096,
+      temperature: 0.7,
+      system: SYSTEM_PROMPT,
+      messages: messages.map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content,
+      })),
     });
 
-    const chatHistory = messages.map((m: any) => 
-      m.role === 'user' 
-        ? new HumanMessage(m.content)
-        : new AIMessage(m.content)
+    const content = response.content.find(block => block.type === 'text');
+    if (!content || content.type !== 'text') {
+      throw new Error('Unexpected response format');
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        role: 'assistant',
+        content: content.text
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
-
-    const stream = await llm.stream([
-      new SystemMessage(SYSTEM_PROMPT),
-      ...chatHistory,
-    ]);
-
-    return new StreamingTextResponse(stream, {}, data);
 
   } catch (error) {
     console.error('Chat API error:', error);

@@ -11,6 +11,10 @@ declare module 'ai' {
     append(data: any): void;
     close(): void;
   }
+
+  export function AnthropicStream(
+    res: Response | AsyncIterable<any>
+  ): ReadableStream;
 }
 
 declare module 'ai/react' {
