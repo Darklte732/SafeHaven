@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 
@@ -12,18 +13,22 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
+interface QuoteResponse {
+  message: string;
+  quoteData: any;
+}
+
 interface QuoteInfo {
-  optedIn?: boolean;
-  state?: string;
-  gender?: string;
-  dateOfBirth?: string;
-  height?: number;
-  weight?: number;
-  tobaccoUse?: boolean;
-  coverageAmount?: number;
-  nicotineUse?: boolean;
+  state: string;
+  gender: string;
+  dateOfBirth: string;
+  height: string;
+  weight: number;
+  nicotineUse: boolean;
+  coverageAmount: string;
   phoneNumber?: string;
-  medications?: string[];
+  optedIn?: boolean;
+  tobaccoUse?: boolean;
   heartConditions?: boolean;
   lungConditions?: boolean;
   highBloodPressure?: boolean;
@@ -32,6 +37,8 @@ interface QuoteInfo {
   strokeHistory?: boolean;
   hospitalStays?: boolean;
 }
+
+interface PartialQuoteInfo extends Partial<QuoteInfo> {}
 
 function extractQuoteInfo(messages: any[]): Partial<QuoteInfo> {
   const info: Partial<QuoteInfo> = {};
@@ -87,142 +94,67 @@ function extractQuoteInfo(messages: any[]): Partial<QuoteInfo> {
   return info;
 }
 
-async function processQuoteRequest(messages: any[]) {
-  const quoteInfo = extractQuoteInfo(messages);
-  
-  // If not opted in, don't process further
-  if (!quoteInfo.optedIn) {
-    return {
-      complete: false,
-      needsOptIn: true,
-      collectedInfo: quoteInfo
-    };
-  }
-
-  // Check if we have enough information for a quote
-  const requiredFields = ['state', 'gender', 'dateOfBirth', 'height', 'weight', 'coverageAmount', 'phoneNumber'];
-  const missingFields = requiredFields.filter(field => !(field in quoteInfo));
-
-  if (missingFields.length > 0) {
-    return {
-      complete: false,
-      missingFields,
-      collectedInfo: quoteInfo
-    };
-  }
-
-  // If we have all required info, get quote from n8n
-  const quote = await getQuoteFromN8N(quoteInfo);
-  
-  // Save quote to Supabase
-  await saveQuoteToSupabase({
-    ...quoteInfo,
-    quote_amount: quote.amount,
-    created_at: new Date().toISOString(),
-    status: 'pending'
-  });
-
-  return {
-    complete: true,
-    quote,
-    collectedInfo: quoteInfo
-  };
+async function processQuoteRequest(messages: any[]): Promise<{ collectedInfo: QuoteInfo }> {
+  const quoteInfo = extractQuoteInfo(messages) as QuoteInfo;
+  return { collectedInfo: quoteInfo };
 }
 
-async function getQuoteFromN8N(data: any) {
+async function getQuoteFromN8N(data: QuoteInfo): Promise<NextResponse> {
   try {
-    // Format height from 5'9 to 59
-    if (typeof data.height === 'string' && data.height.includes("'")) {
-      const [feet, inches] = data.height.replace("'", "").split(" ");
-      data.height = parseInt(feet) * 10 + parseInt(inches || '0');
-    }
-
-    // Format date of birth to MM-DD-YYYY
-    const dob = data.dateOfBirth;
-    const formattedDob = `${dob.substring(0,2)}-${dob.substring(2,4)}-${dob.substring(4)}`;
-
-    // Calculate coverage amounts with $10,000 increments
-    const baseAmount = parseInt(data.coverageAmount);
-    const coverageAmounts = [
-      baseAmount,
-      baseAmount + 10000,
-      baseAmount + 20000
-    ];
-
-    // Format data for initial request
+    // Format data for HTTP request
     const formattedData = {
       state: data.state,
-      gender: data.gender === 'male' ? 'Male' : 'Female',
-      dob: formattedDob,
+      gender: data.gender,
+      dateOfBirth: data.dateOfBirth,
       height: data.height,
       weight: data.weight,
-      nicotine_use: data.tobaccoUse || data.nicotineUse || false,
-      coverage_amount_0: coverageAmounts[0].toString(),
-      coverage_amount_1: coverageAmounts[1].toString(),
-      coverage_amount_2: coverageAmounts[2].toString(),
-      phone: data.phoneNumber
+      nicotineUse: data.tobaccoUse || data.nicotineUse || false,
+      coverageAmounts: [
+        Number(data.coverageAmount),
+        Number(data.coverageAmount) + 5000,
+        Number(data.coverageAmount) + 10000
+      ],
+      phoneNumber: data.phoneNumber || '1234567890'
     };
 
-    console.log('Starting quote process with data:', formattedData);
-    
     // Initial request to start quote process
-    const startResponse = await fetch('https://3be3-45-177-2-86.ngrok-free.app/quote/start', {
+    const startResponse = await fetch('https://3be3-45-177-2-86.ngrok-free.app/webhook/MooQuoting', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(formattedData),
+      body: JSON.stringify(formattedData)
     });
 
+    // Return error response
     if (!startResponse.ok) {
-      throw new Error(`Failed to start quote process: ${startResponse.status}`);
+      console.error('Error starting quote process:', await startResponse.text());
+      return NextResponse.json({ 
+        error: 'Failed to start quote process',
+        message: 'There was an error processing your quote request. Please try again.'
+      }, { status: 500 });
     }
 
-    const startResult = await startResponse.json();
-    const quoteId = startResult.quoteId; // Assuming n8n returns a quote ID
+    // Get the response data
+    const quoteData = await startResponse.json();
 
-    // Poll for quote status every 10 seconds for up to 2 minutes
-    let attempts = 0;
-    const maxAttempts = 12; // 12 attempts * 10 seconds = 2 minutes
-    
-    while (attempts < maxAttempts) {
-      console.log(`Checking quote status (attempt ${attempts + 1}/${maxAttempts})`);
-      
-      const statusResponse = await fetch(`https://3be3-45-177-2-86.ngrok-free.app/quote/status/${quoteId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+    // Return the formatted response to the user
+    const response: QuoteResponse = {
+      message: "Thank you for providing your information. Here are your quote options:",
+      quoteData: quoteData
+    };
 
-      if (!statusResponse.ok) {
-        throw new Error(`Failed to check quote status: ${statusResponse.status}`);
-      }
-
-      const statusResult = await statusResponse.json();
-      
-      if (statusResult.status === 'complete') {
-        console.log('Quote process completed:', statusResult);
-        return {
-          ...statusResult,
-          coverageAmounts,
-          processingTime: '2 minutes'
-        };
-      }
-
-      // Wait 10 seconds before next attempt
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      attempts++;
-    }
-
-    throw new Error('Quote process timed out after 2 minutes');
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Error in quote process:', error);
-    throw error;
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      message: 'An unexpected error occurred while processing your request.'
+    }, { status: 500 });
   }
 }
 
-async function saveQuoteToSupabase(quoteData: any) {
+function saveQuoteToSupabase(quoteData: any) {
   try {
     const { data, error } = await supabase
       .from('quotes')
@@ -327,7 +259,7 @@ export async function POST(req: Request) {
     }
 
     // Process quote request first
-    const quoteResult = await processQuoteRequest(messages);
+    const quoteResult = processQuoteRequest(messages);
     console.log('Quote processing result:', quoteResult);
 
     // If we have complete information, initiate the quote process before getting AI response
@@ -336,7 +268,7 @@ export async function POST(req: Request) {
     if (quoteResult.complete) {
       quoteProcessing = true;
       try {
-        webhookResponse = await getQuoteFromN8N(quoteResult.collectedInfo);
+        webhookResponse = getQuoteFromN8N(quoteResult.collectedInfo);
         console.log('Webhook response:', webhookResponse);
       } catch (error) {
         console.error('Error from webhook:', error);

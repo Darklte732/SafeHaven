@@ -386,7 +386,7 @@ export default function QuotePage() {
             </div>
 
             {/* Opt-in and Submit */}
-            <div className="space-y-4 pb-6">
+            <div className="space-y-4 pb-20 md:pb-6">
               <div className="flex items-start space-x-3">
                 <input
                   type="checkbox"
@@ -411,7 +411,7 @@ export default function QuotePage() {
                 </div>
               </div>
               
-              {/* Submit Button - Updated for better mobile visibility */}
+              {/* Submit Button - Fixed at bottom for mobile */}
               <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:relative md:bg-transparent md:border-0 md:p-0 z-10">
                 <button
                   type="submit"
