@@ -386,7 +386,7 @@ export default function QuotePage() {
             </div>
 
             {/* Opt-in and Submit */}
-            <div className="space-y-4">
+            <div className="space-y-4 pb-6">
               <div className="flex items-start space-x-3">
                 <input
                   type="checkbox"
@@ -411,11 +411,12 @@ export default function QuotePage() {
                 </div>
               </div>
               
-              <div className="flex flex-col items-center justify-center mt-8">
+              {/* Submit Button - Updated for better mobile visibility */}
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:relative md:bg-transparent md:border-0 md:p-0 z-10">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full sm:w-auto px-8 py-3 text-lg font-medium text-white bg-primary rounded-md shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full px-8 py-4 text-lg font-medium text-white bg-primary rounded-md shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isSubmitting ? (
                     <>
