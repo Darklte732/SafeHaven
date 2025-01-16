@@ -16,6 +16,79 @@ interface ApiResponse {
   content: string;
   error?: string;
   details?: string;
+  loading?: boolean;
+  estimatedTime?: string;
+  loadingState?: {
+    status: string;
+    startTime: number;
+    endTime: number;
+    message: string;
+    steps: {
+      name: string;
+      duration: number;
+      status: string;
+    }[];
+  };
+}
+
+function LoadingIndicator({ loadingState }: { loadingState: ApiResponse['loadingState'] }) {
+  const [timeLeft, setTimeLeft] = useState(120);
+
+  useEffect(() => {
+    if (!loadingState) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [loadingState]);
+
+  if (!loadingState) return null;
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  return (
+    <div className="flex flex-col items-center space-y-4 p-4 bg-blue-50 rounded-lg">
+      <div className="flex items-center space-x-2">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+        <span className="text-blue-600 font-medium">Processing your quotes...</span>
+      </div>
+      
+      <div className="w-full max-w-md bg-white rounded-lg p-4 shadow-sm">
+        <div className="flex justify-between mb-2">
+          <span className="text-gray-600">Time Remaining:</span>
+          <span className="text-blue-600 font-medium">
+            {minutes}:{seconds.toString().padStart(2, '0')}
+          </span>
+        </div>
+        
+        <div className="space-y-3">
+          {loadingState.steps.map((step, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              {step.status === 'completed' ? (
+                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : step.status === 'in_progress' ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              ) : (
+                <div className="w-4 h-4 rounded-full border-2 border-gray-300"></div>
+              )}
+              <span className={`text-sm ${
+                step.status === 'completed' ? 'text-green-600' :
+                step.status === 'in_progress' ? 'text-blue-600' :
+                'text-gray-500'
+              }`}>
+                {step.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function ChatPage() {
@@ -23,6 +96,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingState, setLoadingState] = useState<ApiResponse['loadingState']>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -80,6 +154,7 @@ export default function ChatPage() {
         throw new Error(data.details || data.error || 'Failed to get response');
       }
 
+      setLoadingState(data.loadingState);
       setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
     } catch (error) {
       console.error('Error:', error);
@@ -180,6 +255,7 @@ export default function ChatPage() {
                     )}
                   </div>
                 ))}
+                {loadingState && <LoadingIndicator loadingState={loadingState} />}
                 <div ref={messagesEndRef} />
               </div>
             )}
@@ -190,12 +266,12 @@ export default function ChatPage() {
               value={input}
               onChange={handleInputChange}
               placeholder="Type your message..."
-              disabled={isLoading}
+              disabled={isLoading || loadingState !== null}
               className="flex-1"
             />
             <Button 
               type="submit" 
-              disabled={isLoading}
+              disabled={isLoading || loadingState !== null}
               className="bg-[#4F46E5] hover:bg-[#4338CA] text-white"
             >
               {isLoading ? 'Sending...' : 'Send'}
