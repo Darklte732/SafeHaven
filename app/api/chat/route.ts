@@ -132,52 +132,29 @@ async function getQuoteFromN8N(data: any) {
       data.height = parseInt(feet) * 10 + parseInt(inches || '0');
     }
 
-    // Calculate coverage amounts (base amount and two higher tiers)
-    const baseAmount = data.coverageAmount;
+    // Format date of birth to MM-DD-YYYY
+    const dob = data.dateOfBirth;
+    const formattedDob = `${dob.substring(0,2)}-${dob.substring(2,4)}-${dob.substring(4)}`;
+
+    // Calculate coverage amounts with $10,000 increments
+    const baseAmount = parseInt(data.coverageAmount);
     const coverageAmounts = [
       baseAmount,
-      Math.min(baseAmount + 5000, 25000),
-      Math.min(baseAmount + 10000, 25000)
-    ].filter((amount, index, self) => self.indexOf(amount) === index); // Remove duplicates
-
-    // Determine recommended carrier based on health conditions
-    let recommendedCarrier = 'Mutual of Omaha'; // Default for healthy applicants
-    const healthIssues = [
-      data.heartConditions,
-      data.lungConditions,
-      data.highBloodPressure,
-      data.cancerHistory,
-      data.diabetes,
-      data.strokeHistory,
-      data.hospitalStays
-    ].filter(Boolean).length;
-
-    if (healthIssues >= 3) {
-      recommendedCarrier = 'AIG';
-    } else if (healthIssues >= 1) {
-      recommendedCarrier = 'American Amicable';
-    }
+      baseAmount + 10000,
+      baseAmount + 20000
+    ];
 
     // Format data for n8n webhook
     const formattedData = {
-      State: data.state,
-      Gender: data.gender,
-      DateOfBirth: data.dateOfBirth,
-      Height: data.height,
-      Weight: data.weight,
-      TobaccoUse: data.tobaccoUse ? 'Yes' : 'No',
-      CoverageAmounts: coverageAmounts,
-      RecommendedCarrier: recommendedCarrier,
-      HealthProfile: {
-        Medications: data.medications || [],
-        HeartConditions: data.heartConditions || false,
-        LungConditions: data.lungConditions || false,
-        HighBloodPressure: data.highBloodPressure || false,
-        CancerHistory: data.cancerHistory || false,
-        Diabetes: data.diabetes || false,
-        StrokeHistory: data.strokeHistory || false,
-        HospitalStays: data.hospitalStays || false
-      }
+      state: data.state,
+      gender: data.gender === 'male' ? 'Male' : 'Female',
+      dob: formattedDob,
+      height: data.height,
+      weight: data.weight,
+      nicotine_use: data.tobaccoUse || data.nicotineUse || false,
+      coverage_amount_0: coverageAmounts[0].toString(),
+      coverage_amount_1: coverageAmounts[1].toString(),
+      coverage_amount_2: coverageAmounts[2].toString()
     };
 
     console.log('Sending formatted data to n8n:', formattedData);
@@ -196,7 +173,6 @@ async function getQuoteFromN8N(data: any) {
     const quoteResponse = await response.json();
     return {
       ...quoteResponse,
-      recommendedCarrier,
       coverageAmounts,
       processingTime: '2 minutes'
     };
