@@ -261,21 +261,23 @@ export default function ChatPage() {
             )}
           </div>
           
-          <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
-            <Input
-              value={input}
-              onChange={handleInputChange}
-              placeholder="Type your message..."
-              disabled={isLoading || loadingState !== null}
-              className="flex-1"
-            />
-            <Button 
-              type="submit" 
-              disabled={isLoading || loadingState !== null}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white"
-            >
-              {isLoading ? 'Sending...' : 'Send'}
-            </Button>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4 sticky bottom-0 bg-white p-4 border-t border-gray-200">
+            <div className="flex gap-2">
+              <Input
+                value={input}
+                onChange={handleInputChange}
+                placeholder="Type your message..."
+                disabled={isLoading || loadingState !== null}
+                className="flex-1 h-12"
+              />
+              <Button 
+                type="submit" 
+                disabled={isLoading || loadingState !== null}
+                className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-8 py-3 h-12 text-lg font-medium shadow-lg rounded-md"
+              >
+                {isLoading ? 'Sending...' : 'Send'}
+              </Button>
+            </div>
           </form>
         </Card>
 
