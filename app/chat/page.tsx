@@ -14,12 +14,15 @@ interface Message {
 interface ApiResponse {
   role: 'assistant';
   content: string;
+  error?: string;
+  details?: string;
 }
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const quickQuestions = [
     {
@@ -48,6 +51,7 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setError(null);
 
     try {
       const response = await fetch('/api/chat', {
@@ -60,15 +64,20 @@ export default function ChatPage() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
+      const data: ApiResponse = await response.json();
+
+      if (!response.ok || data.error) {
+        throw new Error(data.details || data.error || 'Failed to get response');
       }
 
-      const data: ApiResponse = await response.json();
-      setMessages(prev => [...prev, data]);
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
     } catch (error) {
       console.error('Error:', error);
-      // Optionally show error to user
+      setError(error instanceof Error ? error.message : 'Failed to get response');
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.' 
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -92,6 +101,11 @@ export default function ChatPage() {
         {/* Chat Interface */}
         <Card className="w-full min-h-[600px] p-6 flex flex-col bg-white shadow-lg">
           <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+            {error && (
+              <div className="text-center p-4 bg-red-50 text-red-600 rounded-lg">
+                {error}
+              </div>
+            )}
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 mt-8 space-y-4">
                 <div className="flex justify-center mb-6">

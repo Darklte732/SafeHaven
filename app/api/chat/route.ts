@@ -80,44 +80,65 @@ Remember to maintain a professional yet warm demeanor throughout the interaction
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
+    console.log('Received messages:', messages); // Debug log
 
     if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY is not set');
       throw new Error('ANTHROPIC_API_KEY is not set');
     }
+
+    // Format messages for Claude
+    const formattedMessages = messages.map((m: any) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content,
+    }));
+
+    console.log('Sending to Claude:', {
+      model: 'claude-3-opus-20240229',
+      messages: formattedMessages,
+      system: SYSTEM_PROMPT,
+    }); // Debug log
 
     const response = await anthropic.messages.create({
       model: 'claude-3-opus-20240229',
       max_tokens: 4096,
       temperature: 0.7,
       system: SYSTEM_PROMPT,
-      messages: messages.map((m: any) => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.content,
-      })),
+      messages: formattedMessages,
     });
 
-    const content = response.content.find(block => block.type === 'text');
-    if (!content || content.type !== 'text') {
+    console.log('Claude response:', response); // Debug log
+
+    if (!response.content || response.content.length === 0) {
+      console.error('Empty response from Claude');
+      throw new Error('Empty response from AI');
+    }
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      console.error('Unexpected content type:', content.type);
       throw new Error('Unexpected response format');
     }
 
-    return new Response(
-      JSON.stringify({ 
-        role: 'assistant',
-        content: content.text
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const aiResponse = {
+      role: 'assistant' as const,
+      content: content.text,
+    };
+
+    console.log('Sending response:', aiResponse); // Debug log
+
+    return new Response(JSON.stringify(aiResponse), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
   } catch (error) {
     console.error('Chat API error:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'An error occurred while processing your request. Please try again.' 
+        error: 'An error occurred while processing your request. Please try again.',
+        details: error instanceof Error ? error.message : 'Unknown error',
       }),
       {
         status: 500,
