@@ -42,6 +42,7 @@
     "eslint-config-next": "14.2.4",
     "next": "^15.1.4",
     "postcss": "^8.5.1",
+    "tailwindcss-scrollbar": "^0.1.0",
     "typescript": "^5.3.3"
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, ChangeEvent } from 'react';
+import { useState, FormEvent, ChangeEvent, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,16 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const quickQuestions = [
     {
@@ -99,8 +109,11 @@ export default function ChatPage() {
         </div>
         
         {/* Chat Interface */}
-        <Card className="w-full min-h-[600px] p-6 flex flex-col bg-white shadow-lg">
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+        <Card className="w-full h-[600px] p-6 flex flex-col bg-white shadow-lg">
+          <div 
+            ref={chatContainerRef}
+            className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pr-4"
+          >
             {error && (
               <div className="text-center p-4 bg-red-50 text-red-600 rounded-lg">
                 {error}
@@ -132,40 +145,43 @@ export default function ChatPage() {
                 </div>
               </div>
             ) : (
-              messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  {message.role === 'assistant' && (
-                    <div className="chat-avatar chat-avatar-assistant">
-                      <SafeImage
-                        src="/images/logo.svg"
-                        alt="AI"
-                        width={20}
-                        height={20}
-                        className="invert"
-                      />
-                    </div>
-                  )}
+              <div className="space-y-4">
+                {messages.map((message, index) => (
                   <div
-                    className={`chat-message ${
-                      message.role === 'user'
-                        ? 'chat-message-user'
-                        : 'chat-message-assistant'
+                    key={index}
+                    className={`flex ${
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
                     }`}
                   >
-                    {message.content}
-                  </div>
-                  {message.role === 'user' && (
-                    <div className="chat-avatar chat-avatar-user">
-                      <span className="text-gray-600">You</span>
+                    {message.role === 'assistant' && (
+                      <div className="chat-avatar chat-avatar-assistant">
+                        <SafeImage
+                          src="/images/logo.svg"
+                          alt="AI"
+                          width={20}
+                          height={20}
+                          className="invert"
+                        />
+                      </div>
+                    )}
+                    <div
+                      className={`chat-message ${
+                        message.role === 'user'
+                          ? 'chat-message-user'
+                          : 'chat-message-assistant'
+                      }`}
+                    >
+                      {message.content}
                     </div>
-                  )}
-                </div>
-              ))
+                    {message.role === 'user' && (
+                      <div className="chat-avatar chat-avatar-user">
+                        <span className="text-gray-600">You</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
             )}
           </div>
           
