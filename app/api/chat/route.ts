@@ -44,8 +44,8 @@ function extractQuoteInfo(messages: any[]): Partial<QuoteInfo> {
 
   const lastMessage = messages[messages.length - 1].content.toLowerCase();
 
-  // Extract phone number (10 digits)
-  const phoneMatch = lastMessage.match(/\b\d{10}\b/);
+  // Extract phone number (XXX-XXX-XXXX)
+  const phoneMatch = lastMessage.match(/\b\d{3}-\d{3}-\d{4}\b/);
   if (phoneMatch) info.phoneNumber = phoneMatch[0];
 
   // Extract state (2-letter code)
@@ -176,7 +176,24 @@ async function getQuoteFromN8N(data: any) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const quoteResponse = await response.json();
+    // Wait for 2 minutes
+    await new Promise(resolve => setTimeout(resolve, 120000));
+
+    // Make second webhook call to get quotes
+    console.log('Retrieving quotes with phone number:', data.phoneNumber);
+    const quotesResponse = await fetch('https://3be3-45-177-2-86.ngrok-free.app/webhook/GettingQuote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ phone: data.phoneNumber }),
+    });
+
+    if (!quotesResponse.ok) {
+      throw new Error(`HTTP error! status: ${quotesResponse.status}`);
+    }
+
+    const quoteResponse = await quotesResponse.json();
     return {
       ...quoteResponse,
       coverageAmounts,
@@ -253,7 +270,7 @@ RESPONSE STRUCTURE:
 
 EXAMPLE RESPONSES:
 First Message: [INITIAL OPT-IN MESSAGE]
-After "I AGREE": "Thank you for agreeing to the terms. What is your phone number? Please provide 10 digits with no spaces or special characters."
+After "I AGREE": "Thank you for agreeing to the terms. What is your phone number? Please provide it in the format XXX-XXX-XXXX."
 Regular Flow: "Got it, your phone number is recorded. What state do you live in?"
 
 Remember: 
