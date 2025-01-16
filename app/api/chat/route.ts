@@ -149,7 +149,7 @@ async function getQuoteFromN8N(data: any) {
       baseAmount + 20000
     ];
 
-    // Format data for n8n webhook
+    // Format data for initial request
     const formattedData = {
       state: data.state,
       gender: data.gender === 'male' ? 'Male' : 'Female',
@@ -163,53 +163,61 @@ async function getQuoteFromN8N(data: any) {
       phone: data.phoneNumber
     };
 
-    console.log('Sending formatted data to n8n:', formattedData);
+    console.log('Starting quote process with data:', formattedData);
     
-    // First webhook call - MooQuoting
-    const response = await fetch('https://3be3-45-177-2-86.ngrok-free.app/webhook/MooQuoting', {
+    // Initial request to start quote process
+    const startResponse = await fetch('https://3be3-45-177-2-86.ngrok-free.app/quote/start', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
       },
       body: JSON.stringify(formattedData),
     });
 
-    if (!response.ok) {
-      console.error('MooQuoting webhook error:', response.status, await response.text());
-      throw new Error(`MooQuoting webhook error! status: ${response.status}`);
+    if (!startResponse.ok) {
+      throw new Error(`Failed to start quote process: ${startResponse.status}`);
     }
 
-    // Wait for 2 minutes
-    console.log('Waiting 2 minutes before retrieving quotes...');
-    await new Promise(resolve => setTimeout(resolve, 120000));
+    const startResult = await startResponse.json();
+    const quoteId = startResult.quoteId; // Assuming n8n returns a quote ID
 
-    // Second webhook call - GettingQuote
-    console.log('Retrieving quotes with phone number:', data.phoneNumber);
-    const quotesResponse = await fetch('https://3be3-45-177-2-86.ngrok-free.app/webhook/GettingQuote', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ phone: data.phoneNumber }),
-    });
-
-    if (!quotesResponse.ok) {
-      console.error('GettingQuote webhook error:', quotesResponse.status, await quotesResponse.text());
-      throw new Error(`GettingQuote webhook error! status: ${quotesResponse.status}`);
-    }
-
-    const quoteResponse = await quotesResponse.json();
-    console.log('Quote response received:', quoteResponse);
+    // Poll for quote status every 10 seconds for up to 2 minutes
+    let attempts = 0;
+    const maxAttempts = 12; // 12 attempts * 10 seconds = 2 minutes
     
-    return {
-      ...quoteResponse,
-      coverageAmounts,
-      processingTime: '2 minutes'
-    };
+    while (attempts < maxAttempts) {
+      console.log(`Checking quote status (attempt ${attempts + 1}/${maxAttempts})`);
+      
+      const statusResponse = await fetch(`https://3be3-45-177-2-86.ngrok-free.app/quote/status/${quoteId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!statusResponse.ok) {
+        throw new Error(`Failed to check quote status: ${statusResponse.status}`);
+      }
+
+      const statusResult = await statusResponse.json();
+      
+      if (statusResult.status === 'complete') {
+        console.log('Quote process completed:', statusResult);
+        return {
+          ...statusResult,
+          coverageAmounts,
+          processingTime: '2 minutes'
+        };
+      }
+
+      // Wait 10 seconds before next attempt
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      attempts++;
+    }
+
+    throw new Error('Quote process timed out after 2 minutes');
   } catch (error) {
-    console.error('Error getting quote from n8n:', error);
+    console.error('Error in quote process:', error);
     throw error;
   }
 }
@@ -295,13 +303,18 @@ When asking for coverage amount, explain that you'll provide quotes for three co
 3. A premium option ($10,000 more than requested, up to $25,000)
 
 QUOTE GENERATION MESSAGE:
-When all information is collected, say:
-"Thank you for providing all the necessary information. I'll now generate quotes for [coverage amounts]. This will take approximately 2 minutes to process. You'll see a countdown timer while I:
-1. Submit your information
-2. Process quotes with multiple carriers
-3. Retrieve your final rates
+When all information is collected, ONLY say:
+"Thank you for providing all the necessary information. I'll now generate quotes for [coverage amounts]. This will take approximately 2 minutes to process. You'll see a countdown timer while I process your quotes. Please wait while I prepare your personalized rates..."
 
-Please wait while I prepare your personalized quotes..."`;
+IMPORTANT QUOTE RULES:
+1. NEVER make up or provide specific quote amounts
+2. NEVER mention specific carriers
+3. While quotes are processing, ONLY say "I'm still processing your quotes. This typically takes about 2 minutes to ensure we get you the best rates. Please continue to wait..."
+4. ONLY provide quote information when it's explicitly included in the system message
+
+WAITING RESPONSES:
+If user asks about status: "I'm still gathering quotes from our carrier network. This process takes about 2 minutes to ensure accuracy. Please continue to wait..."
+If user seems impatient: "I understand you're eager to see the quotes. We're almost there. This thorough process helps us find the best rates for you."`;
 
 export async function POST(req: Request) {
   try {
