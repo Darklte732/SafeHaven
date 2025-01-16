@@ -22,6 +22,7 @@ interface QuoteInfo {
   tobaccoUse?: boolean;
   coverageAmount?: number;
   nicotineUse?: boolean;
+  phoneNumber?: string;
   medications?: string[];
   heartConditions?: boolean;
   lungConditions?: boolean;
@@ -42,6 +43,10 @@ function extractQuoteInfo(messages: any[]): Partial<QuoteInfo> {
   );
 
   const lastMessage = messages[messages.length - 1].content.toLowerCase();
+
+  // Extract phone number (10 digits)
+  const phoneMatch = lastMessage.match(/\b\d{10}\b/);
+  if (phoneMatch) info.phoneNumber = phoneMatch[0];
 
   // Extract state (2-letter code)
   const stateMatch = lastMessage.match(/\b[A-Z]{2}\b/i);
@@ -95,7 +100,7 @@ async function processQuoteRequest(messages: any[]) {
   }
 
   // Check if we have enough information for a quote
-  const requiredFields = ['state', 'gender', 'dateOfBirth', 'height', 'weight', 'coverageAmount'];
+  const requiredFields = ['state', 'gender', 'dateOfBirth', 'height', 'weight', 'coverageAmount', 'phoneNumber'];
   const missingFields = requiredFields.filter(field => !(field in quoteInfo));
 
   if (missingFields.length > 0) {
@@ -154,7 +159,8 @@ async function getQuoteFromN8N(data: any) {
       nicotine_use: data.tobaccoUse || data.nicotineUse || false,
       coverage_amount_0: coverageAmounts[0].toString(),
       coverage_amount_1: coverageAmounts[1].toString(),
-      coverage_amount_2: coverageAmounts[2].toString()
+      coverage_amount_2: coverageAmounts[2].toString(),
+      phone: data.phoneNumber
     };
 
     console.log('Sending formatted data to n8n:', formattedData);
@@ -211,14 +217,15 @@ INITIAL OPT-IN MESSAGE:
 Please reply with 'I AGREE' to continue with the quote process, or let me know if you have any questions about these terms."
 
 AFTER OPT-IN RECEIVED, FOLLOW THIS SEQUENCE:
-1. State of residence
-2. Gender
-3. Date of Birth (MMDDYYYY)
-4. Height (inches)
-5. Weight (pounds)
-6. Coverage Amount desired ($5,000 - $25,000)
-7. Tobacco/Nicotine use
-8. Health Assessment (one at a time):
+1. Phone number (10 digits)
+2. State of residence
+3. Gender
+4. Date of Birth (MMDDYYYY)
+5. Height (inches)
+6. Weight (pounds)
+7. Coverage Amount desired ($5,000 - $25,000)
+8. Tobacco/Nicotine use
+9. Health Assessment (one at a time):
    - Medications and reasons
    - Heart conditions/stints
    - Lung conditions
@@ -246,8 +253,8 @@ RESPONSE STRUCTURE:
 
 EXAMPLE RESPONSES:
 First Message: [INITIAL OPT-IN MESSAGE]
-After "I AGREE": "Thank you for agreeing to the terms. What state do you live in?"
-Regular Flow: "Got it, Texas. What is your date of birth? Please provide it in MMDDYYYY format."
+After "I AGREE": "Thank you for agreeing to the terms. What is your phone number? Please provide 10 digits with no spaces or special characters."
+Regular Flow: "Got it, your phone number is recorded. What state do you live in?"
 
 Remember: 
 - Never proceed without explicit opt-in
