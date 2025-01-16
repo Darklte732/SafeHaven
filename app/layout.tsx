@@ -2,12 +2,9 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Navigation } from '@/components/ui/navigation'
-import dynamic from 'next/dynamic'
+import ClientLayout from '@/components/ClientLayout'
 
 const inter = Inter({ subsets: ['latin'] })
-
-// Dynamically import the client component with no SSR
-const VoiceChatWidget = dynamic(() => import('@/components/VoiceChatWidget'), { ssr: false })
 
 export const metadata: Metadata = {
   title: 'SafeHaven Insurance - Affordable Final Expense Coverage',
@@ -23,8 +20,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Navigation />
-        {children}
-        <VoiceChatWidget />
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   )
