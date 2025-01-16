@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 
+// Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
@@ -80,10 +81,10 @@ Remember to maintain a professional yet warm demeanor throughout the interaction
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-    console.log('Received messages:', messages); // Debug log
+    console.log('Received messages:', messages);
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY is not set');
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
       throw new Error('ANTHROPIC_API_KEY is not set');
     }
 
@@ -93,12 +94,7 @@ export async function POST(req: Request) {
       content: m.content,
     }));
 
-    console.log('Sending to Claude:', {
-      model: 'claude-3-opus-20240229',
-      messages: formattedMessages,
-      system: SYSTEM_PROMPT,
-    }); // Debug log
-
+    console.log('Sending request to Claude');
     const response = await anthropic.messages.create({
       model: 'claude-3-opus-20240229',
       max_tokens: 4096,
@@ -107,43 +103,42 @@ export async function POST(req: Request) {
       messages: formattedMessages,
     });
 
-    console.log('Claude response:', response); // Debug log
-
-    if (!response.content || response.content.length === 0) {
-      console.error('Empty response from Claude');
-      throw new Error('Empty response from AI');
-    }
-
+    console.log('Received response from Claude');
     const content = response.content[0];
+    
     if (content.type !== 'text') {
-      console.error('Unexpected content type:', content.type);
-      throw new Error('Unexpected response format');
+      throw new Error('Unexpected response type from Claude');
     }
 
-    const aiResponse = {
-      role: 'assistant' as const,
-      content: content.text,
-    };
-
-    console.log('Sending response:', aiResponse); // Debug log
-
-    return new Response(JSON.stringify(aiResponse), {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return new Response(
+      JSON.stringify({
+        role: 'assistant',
+        content: content.text,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        },
+      }
+    );
 
   } catch (error) {
     console.error('Chat API error:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'An error occurred while processing your request. Please try again.',
+        error: 'Failed to get response from AI',
         details: error instanceof Error ? error.message : 'Unknown error',
       }),
       {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
         },
       }
     );
