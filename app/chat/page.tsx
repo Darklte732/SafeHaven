@@ -171,12 +171,38 @@ export default function ChatPage() {
 
   const handleAgree = () => {
     if (selectedOption) {
-      setInput(selectedOption);
-      handleSubmit(new Event('submit') as any);
+      const userMessage: Message = { role: 'user', content: selectedOption };
+      setMessages(prev => [...prev, userMessage]);
       setShowAgreement(false);
       setSelectedOption(null);
       setShowFollowUps(null);
-      setLoadingState(undefined); // Reset loading state to enable input
+      
+      // Send message to API
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+        }),
+      })
+      .then(response => response.json())
+      .then((data: ApiResponse) => {
+        if (data.error) {
+          throw new Error(data.details || data.error);
+        }
+        setLoadingState(data.loadingState);
+        setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        setError(error instanceof Error ? error.message : 'Failed to get response');
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.' 
+        }]);
+      });
     }
   };
 
@@ -191,6 +217,9 @@ export default function ChatPage() {
     setError(null);
 
     try {
+      // Parse user information if it matches the expected format
+      const infoRegex = /(?:new jersey|nj|new york|ny|pennsylvania|pa|other states)?\s*(?:male|female)?\s*(\d{1,2}\/\d{1,2}\/\d{4}|\d{8})\s*(?:\d+'?\d+"?|\d+\s*(?:ft|feet))?\s*(?:\d+\s*(?:lbs?|pounds?))?\s*(?:\d{1,6})/i;
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -198,6 +227,10 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
+          userInfo: input.match(infoRegex) ? {
+            rawInput: input,
+            isUserInfo: true
+          } : undefined
         }),
       });
 
@@ -207,14 +240,18 @@ export default function ChatPage() {
         throw new Error(data.details || data.error || 'Failed to get response');
       }
 
-      setLoadingState(data.loadingState);
+      // If the response indicates we need more info, don't clear the loading state
+      if (!data.content.includes('need some more information')) {
+        setLoadingState(data.loadingState);
+      }
+      
       setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
     } catch (error) {
       console.error('Error:', error);
       setError(error instanceof Error ? error.message : 'Failed to get response');
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.' 
+        content: 'I apologize, but I encountered an error processing your information. Please try again or contact support if the issue persists.' 
       }]);
     } finally {
       setIsLoading(false);
@@ -340,12 +377,12 @@ export default function ChatPage() {
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Type your message..."
-                disabled={isLoading}
+                disabled={false}
                 className="flex-1 h-12"
               />
               <Button 
                 type="submit" 
-                disabled={isLoading}
+                disabled={isLoading || !input.trim()}
                 className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-8 py-3 h-12 text-lg font-medium shadow-lg rounded-md"
               >
                 {isLoading ? 'Sending...' : 'Send'}
