@@ -2,23 +2,16 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { SafeImage } from '@/components/ui/image';
 
 export function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b">
+      <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <svg
-              className="h-8 w-8 text-blue-600"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1ZM12 11.99H19C18.47 16.11 15.72 19.78 12 20.93V12H5V6.3L12 3.19V11.99Z" />
-            </svg>
+            <SafeImage src="/images/logo.svg" alt="SafeHaven Logo" width={32} height={32} />
             <span className="text-xl font-bold text-gray-900">SafeHaven</span>
           </Link>
 
@@ -42,17 +35,6 @@ export function Navbar() {
             >
               Contact
             </Link>
-          </div>
-
-          {/* Guide Download Button */}
-          <div className="hidden md:block">
-            <Button
-              asChild
-              variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
-            >
-              <Link href="/guide">Download Free Guide</Link>
-            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -94,12 +76,6 @@ export function Navbar() {
             className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
           >
             Contact
-          </Link>
-          <Link
-            href="/guide"
-            className="block px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-          >
-            Download Free Guide
           </Link>
         </div>
       </div>
