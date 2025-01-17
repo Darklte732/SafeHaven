@@ -141,18 +141,44 @@ const defaultHealthQuestions: HealthQuestions = {
 function parseUserInfo(input: string, existingInfo?: UserInformation): UserInformation {
   const info: UserInformation = existingInfo || {};
   
-  // State
-  const stateMatch = input.match(/(?:new jersey|nj|new york|ny|pennsylvania|pa)/i);
-  if (stateMatch) {
-    const state = stateMatch[0].toLowerCase();
-    info.state = state === 'nj' ? 'new jersey' : 
-                 state === 'ny' ? 'new york' : 
-                 state === 'pa' ? 'pennsylvania' : state;
+  // Name parsing - more specific to handle full names
+  const fullNameMatch = input.match(/^([a-zA-Z]+)(?: ([a-zA-Z]+))?$/);
+  if (fullNameMatch) {
+    info.firstName = fullNameMatch[1];
+    info.lastName = fullNameMatch[2] || null;
+  } else {
+    const nameMatch = input.match(/(?:name is|call me|i am) ([a-zA-Z]+)(?: ([a-zA-Z]+))?/i);
+    if (nameMatch) {
+      info.firstName = nameMatch[1];
+      info.lastName = nameMatch[2] || null;
+    }
   }
 
-  // Gender
-  const genderMatch = input.match(/\b(male|female)\b/i);
-  if (genderMatch) info.gender = genderMatch[0].toLowerCase();
+  // Email validation with better pattern
+  const strictEmailMatch = input.match(/^[\w\.-]+@[\w\.-]+\.\w+$/);
+  if (strictEmailMatch) {
+    info.email = strictEmailMatch[0];
+  }
+
+  // Phone number with strict format
+  const strictPhoneMatch = input.match(/^(\d{3}[-.]?\d{3}[-.]?\d{4})$/);
+  if (strictPhoneMatch) {
+    info.phone = strictPhoneMatch[1].replace(/[-.]/, '');
+  }
+
+  // State with exact match
+  const stateInput = input.toLowerCase().trim();
+  if (['nj', 'new jersey', 'ny', 'new york', 'pa', 'pennsylvania'].includes(stateInput)) {
+    info.state = stateInput === 'nj' ? 'new jersey' : 
+                 stateInput === 'ny' ? 'new york' : 
+                 stateInput === 'pa' ? 'pennsylvania' : stateInput;
+  }
+
+  // Gender with exact match
+  const genderInput = input.toLowerCase().trim();
+  if (['male', 'female'].includes(genderInput)) {
+    info.gender = genderInput;
+  }
 
   // Date of Birth - Support multiple formats
   const dobMatch = input.match(/(\d{2})[-/]?(\d{2})[-/]?(\d{4})|(\d{8})/);
@@ -242,18 +268,16 @@ function parseUserInfo(input: string, existingInfo?: UserInformation): UserInfor
 
   info.health = health;
 
-  // Additional field parsing
-  const nameMatch = input.match(/(?:name is|call me|i am) ([a-zA-Z]+)(?: ([a-zA-Z]+))?/i);
-  if (nameMatch) {
-    info.firstName = nameMatch[1];
-    info.lastName = nameMatch[2] || null;
+  // Additional field parsing for loose matches (if strict matches failed)
+  if (!info.email) {
+    const looseEmailMatch = input.match(/\b[\w\.-]+@[\w\.-]+\.\w+\b/);
+    if (looseEmailMatch) info.email = looseEmailMatch[0];
   }
 
-  const emailMatch = input.match(/\b[\w\.-]+@[\w\.-]+\.\w+\b/);
-  if (emailMatch) info.email = emailMatch[0];
-
-  const phoneMatch = input.match(/\b(\d{3}[-.]?\d{3}[-.]?\d{4})\b/);
-  if (phoneMatch) info.phone = phoneMatch[1].replace(/[-.]/, '');
+  if (!info.phone) {
+    const loosePhoneMatch = input.match(/\b(\d{3}[-.]?\d{3}[-.]?\d{4})\b/);
+    if (loosePhoneMatch) info.phone = loosePhoneMatch[1].replace(/[-.]/, '');
+  }
 
   const zipMatch = input.match(/\b\d{5}(?:-\d{4})?\b/);
   if (zipMatch) info.zipCode = zipMatch[0];
@@ -283,29 +307,33 @@ interface QuestionState {
   data: UserInformation;
 }
 
-function getNextQuestion(info: UserInformation): { question: string; field: keyof UserInformation } {
+function getNextQuestion(info: UserInformation): { question: string; field: keyof UserInformation; expectedFormat?: string } {
   if (!info.firstName || !info.lastName) {
     return {
       question: "Let's get started! What is your first and last name?",
-      field: 'firstName'
+      field: 'firstName',
+      expectedFormat: "Example: John Smith"
     };
   }
   if (!info.email) {
     return {
       question: `Thanks ${info.firstName}! What's your email address?`,
-      field: 'email'
+      field: 'email',
+      expectedFormat: "Example: name@example.com"
     };
   }
   if (!info.phone) {
     return {
       question: "Great! What's the best phone number to reach you?",
-      field: 'phone'
+      field: 'phone',
+      expectedFormat: "Example: 123-456-7890"
     };
   }
   if (!info.state) {
     return {
       question: "Which state do you live in? (NJ, NY, or PA)",
-      field: 'state'
+      field: 'state',
+      expectedFormat: "Enter: NJ, NY, or PA"
     };
   }
   if (!info.gender) {
@@ -365,7 +393,7 @@ interface Message {
 
 export async function POST(req: Request) {
   try {
-    const { messages, userInfo } = await req.json();
+    const { messages, userInfo, sessionId } = await req.json();
     const lastMessage = messages[messages.length - 1] as Message;
     const previousMessages = messages.slice(0, -1) as Message[];
 
@@ -380,7 +408,7 @@ export async function POST(req: Request) {
       // Get IP address from request headers
       const forwarded = req.headers.get("x-forwarded-for");
       const ip = forwarded ? forwarded.split(/, /)[0] : req.headers.get("x-real-ip");
-      
+
       // Parse user info while maintaining context from previous messages
       const existingInfo: UserInformation = {};
       for (const msg of previousMessages) {
@@ -388,39 +416,30 @@ export async function POST(req: Request) {
           Object.assign(existingInfo, parseUserInfo(msg.content, existingInfo));
         }
       }
-      const info = parseUserInfo(userInfo.rawInput, existingInfo);
-      info.ipAddress = ip || undefined;
       
-      // Check if there are any validation errors
-      if (info.error) {
-        return NextResponse.json({
-          role: 'assistant',
-          content: `I noticed some issues with the information provided:\n${info.error}\n\nPlease provide the correct information and I'll be happy to help you find the best coverage options.`
-        });
-      }
-
-      // Get next question based on missing information
-      const { question, field } = getNextQuestion(info);
+      // Parse current message
+      const currentInfo = parseUserInfo(lastMessage.content, existingInfo);
+      currentInfo.ipAddress = ip || undefined;
+      currentInfo.leadSource = 'website_chat';
       
-      // If all information is collected
-      if (field === 'complete') {
-        // Save to Supabase
-        const saveResult = await saveToSupabase(info);
+      // If we have all information, save to Supabase and process
+      if (currentInfo.complete) {
+        const saveResult = await saveToSupabase(currentInfo);
         if (!saveResult.success) {
           console.error('Failed to save lead:', saveResult.error);
         }
 
         // Determine carrier eligibility
-        const eligibility = determineCarrierEligibility(info, info.health!);
+        const eligibility = determineCarrierEligibility(currentInfo, currentInfo.health!);
         const eligibleCarriers = Object.entries(eligibility)
           .filter(([_, eligible]) => eligible)
           .map(([carrier, _]) => carrier.replace(/([A-Z])/g, ' $1').trim());
 
         return NextResponse.json({
           role: 'assistant',
-          content: `Thank you for providing all the information, ${info.firstName}! Based on your profile, I've identified the following carriers that can offer you the best coverage:\n\n` +
+          content: `Thank you for providing all the information, ${currentInfo.firstName}! Based on your profile, I've identified the following carriers that can offer you the best coverage:\n\n` +
                   `${eligibleCarriers.length > 0 ? eligibleCarriers.join('\n') : 'We may need to explore additional options.'}\n\n` +
-                  `I'll now search for the best rates from these carriers. One of our licensed agents will contact you ${info.preferredContactMethod ? `via ${info.preferredContactMethod}` : ''} with personalized quotes shortly.`,
+                  `I'll now search for the best rates from these carriers. One of our licensed agents will contact you ${currentInfo.preferredContactMethod ? `via ${currentInfo.preferredContactMethod}` : ''} with personalized quotes shortly.`,
           loadingState: {
             status: 'processing',
             startTime: Date.now(),
@@ -436,27 +455,28 @@ export async function POST(req: Request) {
         });
       }
 
-      // Check if we should skip the current question based on the last response
-      if (lastAssistantMessage?.content === question) {
-        const nextInfo = parseUserInfo(lastMessage.content, info);
-        const nextQuestion = getNextQuestion(nextInfo);
+      // Get next question based on missing information
+      const { question, expectedFormat } = getNextQuestion(currentInfo);
+
+      // If the last question was the same and no new info was parsed, ask for correct format
+      if (lastAssistantMessage?.content.includes(question)) {
         return NextResponse.json({
           role: 'assistant',
-          content: nextQuestion.question
+          content: `I couldn't understand that format. ${expectedFormat || 'Please provide a valid response'}. Please try again.`
         });
       }
 
       // Return next question
       return NextResponse.json({
         role: 'assistant',
-        content: question
+        content: question + (expectedFormat ? `\n${expectedFormat}` : '')
       });
     }
 
     // Default response for initial message
     return NextResponse.json({
       role: 'assistant',
-      content: "Let's get started! What is your first and last name?"
+      content: "Let's get started! What is your first and last name?\nExample: John Smith"
     });
 
   } catch (error) {
