@@ -29,6 +29,7 @@ interface UserInformation {
   preferredContactMethod?: 'phone' | 'email' | 'text' | null;
   leadSource?: string;
   ipAddress?: string;
+  complete?: 'complete';
 }
 
 interface HealthQuestions {
@@ -277,6 +278,86 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
+interface QuestionState {
+  currentQuestion: 'name' | 'email' | 'phone' | 'state' | 'gender' | 'dob' | 'height' | 'weight' | 'coverage' | 'health' | 'complete';
+  data: UserInformation;
+}
+
+function getNextQuestion(info: UserInformation): { question: string; field: keyof UserInformation } {
+  if (!info.firstName || !info.lastName) {
+    return {
+      question: "Let's get started! What is your first and last name?",
+      field: 'firstName'
+    };
+  }
+  if (!info.email) {
+    return {
+      question: `Thanks ${info.firstName}! What's your email address?`,
+      field: 'email'
+    };
+  }
+  if (!info.phone) {
+    return {
+      question: "Great! What's the best phone number to reach you?",
+      field: 'phone'
+    };
+  }
+  if (!info.state) {
+    return {
+      question: "Which state do you live in? (NJ, NY, or PA)",
+      field: 'state'
+    };
+  }
+  if (!info.gender) {
+    return {
+      question: "What is your gender? (male or female)",
+      field: 'gender'
+    };
+  }
+  if (!info.dateOfBirth) {
+    return {
+      question: "What is your date of birth? (MM/DD/YYYY)",
+      field: 'dateOfBirth'
+    };
+  }
+  if (!info.height) {
+    return {
+      question: "What is your height? (e.g., 5'10\" or 70 inches)",
+      field: 'height'
+    };
+  }
+  if (!info.weight) {
+    return {
+      question: "What is your weight in pounds?",
+      field: 'weight'
+    };
+  }
+  if (!info.coverageAmount) {
+    return {
+      question: "How much coverage are you looking for? ($5,000-$25,000)",
+      field: 'coverageAmount'
+    };
+  }
+  if (!info.health || Object.values(info.health).every(v => !v)) {
+    return {
+      question: `Perfect! Now, I need to ask you a few health questions to find the best coverage options.\n\nPlease answer Yes or No to each:\n\n` +
+                `1. Do you have any heart conditions or stints?\n` +
+                `2. Any lung conditions?\n` +
+                `3. High blood pressure?\n` +
+                `4. Any history of cancer?\n` +
+                `5. Do you have diabetes? If yes, is it Type 1 or Type 2, and do you use insulin?\n` +
+                `6. Any history of stroke?\n` +
+                `7. Any hospital stays in the last 12 months?\n` +
+                `8. Do you use any tobacco products?`,
+      field: 'health'
+    };
+  }
+  return {
+    question: 'complete',
+    field: 'complete'
+  };
+}
+
 export async function POST(req: Request) {
   try {
     const { messages, userInfo } = await req.json();
@@ -299,91 +380,54 @@ export async function POST(req: Request) {
         });
       }
 
-      // Check for missing required fields
-      const requiredFields = [
-        'state', 'gender', 'dateOfBirth', 'height', 'weight', 'coverageAmount',
-        'firstName', 'lastName', 'email', 'phone'
-      ] as const;
-      type RequiredField = typeof requiredFields[number];
-      const missingFields = requiredFields.filter(field => !info[field as keyof UserInformation]);
+      // Get next question based on missing information
+      const { question, field } = getNextQuestion(info);
       
-      if (missingFields.length > 0) {
+      // If all information is collected
+      if (field === 'complete') {
+        // Save to Supabase
+        const saveResult = await saveToSupabase(info);
+        if (!saveResult.success) {
+          console.error('Failed to save lead:', saveResult.error);
+        }
+
+        // Determine carrier eligibility
+        const eligibility = determineCarrierEligibility(info, info.health!);
+        const eligibleCarriers = Object.entries(eligibility)
+          .filter(([_, eligible]) => eligible)
+          .map(([carrier, _]) => carrier.replace(/([A-Z])/g, ' $1').trim());
+
         return NextResponse.json({
           role: 'assistant',
-          content: `To provide you with accurate quotes and ensure we can contact you with the best options, I need a few more details. Please provide your:\n\n${missingFields.map(field => {
-            switch(field) {
-              case 'firstName': return '- First Name';
-              case 'lastName': return '- Last Name';
-              case 'email': return '- Email Address';
-              case 'phone': return '- Phone Number';
-              default: return `- ${field.charAt(0).toUpperCase() + field.slice(1)}`;
-            }
-          }).join('\n')}`
+          content: `Thank you for providing all the information, ${info.firstName}! Based on your profile, I've identified the following carriers that can offer you the best coverage:\n\n` +
+                  `${eligibleCarriers.length > 0 ? eligibleCarriers.join('\n') : 'We may need to explore additional options.'}\n\n` +
+                  `I'll now search for the best rates from these carriers. One of our licensed agents will contact you ${info.preferredContactMethod ? `via ${info.preferredContactMethod}` : ''} with personalized quotes shortly.`,
+          loadingState: {
+            status: 'processing',
+            startTime: Date.now(),
+            endTime: Date.now() + 60000,
+            message: 'Searching for insurance quotes...',
+            steps: [
+              { name: 'Verifying information', duration: 5000, status: 'completed' },
+              { name: 'Checking eligibility', duration: 10000, status: 'in_progress' },
+              { name: 'Calculating rates', duration: 15000, status: 'pending' },
+              { name: 'Preparing quotes', duration: 20000, status: 'pending' }
+            ]
+          }
         });
       }
 
-      // If all basic info is provided, proceed to health questions if not already answered
-      if (!info.health || Object.values(info.health).every(v => !v)) {
-        return NextResponse.json({
-          role: 'assistant',
-          content: `Thank you ${info.firstName}! Now, I need to ask you a few health questions to find the best coverage options. Please answer Yes or No to each:\n\n` +
-                  `1. Do you have any heart conditions or stints?\n` +
-                  `2. Any lung conditions?\n` +
-                  `3. High blood pressure?\n` +
-                  `4. Any history of cancer?\n` +
-                  `5. Do you have diabetes? If yes, is it Type 1 or Type 2, and do you use insulin?\n` +
-                  `6. Any history of stroke?\n` +
-                  `7. Any hospital stays in the last 12 months?\n` +
-                  `8. Do you use any tobacco products?`
-        });
-      }
-
-      // If we have all information, save to Supabase before determining carriers
-      const saveResult = await saveToSupabase(info);
-      if (!saveResult.success) {
-        console.error('Failed to save lead:', saveResult.error);
-        // Continue with the flow but log the error
-      }
-
-      // Determine carrier eligibility
-      const eligibility = determineCarrierEligibility(info, info.health);
-      const eligibleCarriers = Object.entries(eligibility)
-        .filter(([_, eligible]) => eligible)
-        .map(([carrier, _]) => carrier.replace(/([A-Z])/g, ' $1').trim());
-
+      // Return next question
       return NextResponse.json({
         role: 'assistant',
-        content: `Thank you for providing all the information, ${info.firstName}! Based on your profile, I've identified the following carriers that can offer you the best coverage:\n\n` +
-                `${eligibleCarriers.length > 0 ? eligibleCarriers.join('\n') : 'We may need to explore additional options.'}\n\n` +
-                `I'll now search for the best rates from these carriers. One of our licensed agents will contact you ${info.preferredContactMethod ? `via ${info.preferredContactMethod}` : ''} with personalized quotes shortly.`,
-        loadingState: {
-          status: 'processing',
-          startTime: Date.now(),
-          endTime: Date.now() + 60000,
-          message: 'Searching for insurance quotes...',
-          steps: [
-            { name: 'Verifying information', duration: 5000, status: 'completed' },
-            { name: 'Checking eligibility', duration: 10000, status: 'in_progress' },
-            { name: 'Calculating rates', duration: 15000, status: 'pending' },
-            { name: 'Preparing quotes', duration: 20000, status: 'pending' }
-          ]
-        }
+        content: question
       });
     }
 
-    // Default response for other messages
+    // Default response for initial message
     return NextResponse.json({
       role: 'assistant',
-      content: 'To get started with your quote, I\'ll need some information. Please provide:\n' +
-               '- First and Last Name\n' +
-               '- Email Address\n' +
-               '- Phone Number\n' +
-               '- State (NJ, NY, or PA)\n' +
-               '- Gender (male or female)\n' +
-               '- Date of Birth (MM/DD/YYYY)\n' +
-               '- Height (e.g., 5\'10" or 70 inches)\n' +
-               '- Weight (in pounds)\n' +
-               '- Coverage Amount ($5,000-$25,000)'
+      content: "Let's get started! What is your first and last name?"
     });
 
   } catch (error) {
