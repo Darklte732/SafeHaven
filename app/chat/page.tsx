@@ -101,6 +101,7 @@ export default function ChatPage() {
   const [loadingState, setLoadingState] = useState<LoadingState | undefined>(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [hasStarted, setHasStarted] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -110,102 +111,7 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  const quickQuestions = [
-    {
-      text: '💰 Get Your Free Quote Now',
-      query: 'I would like to get a quote',
-      followUpOptions: [
-        'Show me rates under $50/month',
-        'Get quote for $10,000 coverage',
-        'Get quote for $25,000 coverage'
-      ]
-    },
-    {
-      text: '🎯 Find My Perfect Coverage',
-      query: 'Help me find the right coverage',
-      followUpOptions: [
-        'Coverage for final expenses',
-        'Coverage for my family',
-        'Coverage under $1 per day'
-      ]
-    },
-    {
-      text: '💎 Special Offers Available',
-      query: 'What special offers do you have?',
-      followUpOptions: [
-        'First month free offer',
-        'Senior discount rates',
-        'No medical exam options'
-      ]
-    },
-    {
-      text: '⚡ Quick & Easy Application',
-      query: 'Start my application',
-      followUpOptions: [
-        'Apply in 5 minutes',
-        'No medical exam needed',
-        'Instant approval possible'
-      ]
-    },
-    {
-      text: '🤝 Talk to an Expert',
-      query: 'Connect with an agent',
-      followUpOptions: [
-        'Get $500 off by talking to agent now',
-        'Free consultation available',
-        'Speak to licensed advisor'
-      ]
-    }
-  ];
-
-  // Add state for follow-up options
-  const [showFollowUps, setShowFollowUps] = useState<string | null>(null);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [showAgreement, setShowAgreement] = useState(false);
-
-  // Function to handle follow-up option click
-  const handleFollowUpClick = (option: string) => {
-    setSelectedOption(option);
-    setShowAgreement(true);
-  };
-
-  const handleAgree = () => {
-    if (selectedOption) {
-      const userMessage: Message = { role: 'user', content: selectedOption };
-      setMessages(prev => [...prev, userMessage]);
-      setShowAgreement(false);
-      setSelectedOption(null);
-      setShowFollowUps(null);
-      
-      // Send message to API
-      fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-        }),
-      })
-      .then(response => response.json())
-      .then((data: ApiResponse) => {
-        if (data.error) {
-          throw new Error(data.details || data.error);
-        }
-        setLoadingState(data.loadingState);
-        setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        setError(error instanceof Error ? error.message : 'Failed to get response');
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.' 
-        }]);
-      });
-    }
-  };
-
+  // Function to handle user input submission
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -217,9 +123,6 @@ export default function ChatPage() {
     setError(null);
 
     try {
-      // Parse user information if it matches the expected format
-      const infoRegex = /(?:new jersey|nj|new york|ny|pennsylvania|pa|other states)?\s*(?:male|female)?\s*(\d{1,2}\/\d{1,2}\/\d{4}|\d{8})\s*(?:\d+'?\d+"?|\d+\s*(?:ft|feet))?\s*(?:\d+\s*(?:lbs?|pounds?))?\s*(?:\d{1,6})/i;
-      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -227,10 +130,10 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
-          userInfo: input.match(infoRegex) ? {
-            rawInput: input,
-            isUserInfo: true
-          } : undefined
+          userInfo: {
+            isUserInfo: true,
+            rawInput: input
+          }
         }),
       });
 
@@ -240,23 +143,67 @@ export default function ChatPage() {
         throw new Error(data.details || data.error || 'Failed to get response');
       }
 
-      // If the response indicates we need more info, don't clear the loading state
-      if (!data.content.includes('need some more information')) {
-        setLoadingState(data.loadingState);
-      }
-      
+      setLoadingState(data.loadingState);
       setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
+      setHasStarted(true);
     } catch (error) {
       console.error('Error:', error);
       setError(error instanceof Error ? error.message : 'Failed to get response');
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'I apologize, but I encountered an error processing your information. Please try again or contact support if the issue persists.' 
+        content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.' 
       }]);
     } finally {
       setIsLoading(false);
     }
   }
+
+  // Function to handle quick option selection
+  const handleQuickOptionSelect = async (option: string) => {
+    if (isLoading) return;
+
+    setInput(option);
+    const userMessage: Message = { role: 'user', content: option };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+          userInfo: {
+            isUserInfo: true,
+            rawInput: option
+          }
+        }),
+      });
+
+      const data: ApiResponse = await response.json();
+
+      if (!response.ok || data.error) {
+        throw new Error(data.details || data.error || 'Failed to get response');
+      }
+
+      setLoadingState(data.loadingState);
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
+      setHasStarted(true);
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to get response');
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.' 
+      }]);
+    } finally {
+      setIsLoading(false);
+      setInput('');
+    }
+  };
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setInput(e.target.value);
@@ -298,35 +245,13 @@ export default function ChatPage() {
                 <p className="text-lg">👋 Hi! I'm your SafeHaven Insurance assistant.</p>
                 <p>I can help you with:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mt-4">
-                  {quickQuestions.map((item, index) => (
-                    <div key={index} className="space-y-2">
-                      <button
-                        onClick={() => {
-                          setInput(item.query);
-                          setShowFollowUps(showFollowUps === item.query ? null : item.query);
-                        }}
-                        className="quick-option group"
-                      >
-                        {item.text}
-                        <span className="quick-option-arrow">
-                          →
-                        </span>
-                      </button>
-                      {showFollowUps === item.query && (
-                        <div className="follow-up-container">
-                          {item.followUpOptions.map((option, optIndex) => (
-                            <button
-                              key={optIndex}
-                              onClick={() => handleFollowUpClick(option)}
-                              className="follow-up-option"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  <button
+                    onClick={() => handleQuickOptionSelect("Get quote for $25,000 coverage")}
+                    className="quick-option group"
+                  >
+                    💰 Get Your Free Quote Now
+                    <span className="quick-option-arrow">→</span>
+                  </button>
                 </div>
               </div>
             ) : (
@@ -377,7 +302,7 @@ export default function ChatPage() {
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Type your message..."
-                disabled={false}
+                disabled={isLoading}
                 className="flex-1 h-12"
               />
               <Button 
@@ -390,69 +315,7 @@ export default function ChatPage() {
             </div>
           </form>
         </Card>
-
-        {/* Video Section with Arrows */}
-        <div className="relative mt-12 mb-12">
-          {/* Left Arrow */}
-          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-16 hidden md:block">
-            <div className="flex items-center">
-              <div className="w-16 h-2 bg-blue-600"></div>
-              <div className="w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-12 border-l-blue-600"></div>
-            </div>
-          </div>
-
-          {/* Right Arrow */}
-          <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-16 hidden md:block">
-            <div className="flex items-center">
-              <div className="w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-12 border-r-blue-600"></div>
-              <div className="w-16 h-2 bg-blue-600"></div>
-            </div>
-          </div>
-
-          {/* Video Placeholder */}
-          <div className="w-full aspect-video bg-gray-100 rounded-lg shadow-lg flex items-center justify-center">
-            <span className="text-gray-500 text-lg">Video Coming Soon</span>
-          </div>
-        </div>
-
-        {/* Trust Badges */}
-        <div className="flex flex-wrap justify-center gap-6 mt-8">
-          <div className="badge-container">
-            <SafeImage src="/images/badges/secure.svg" alt="Secure Chat" width={24} height={24} />
-            <span>Secure Chat</span>
-          </div>
-          <div className="badge-container">
-            <SafeImage src="/images/badges/privacy.svg" alt="Privacy Protected" width={24} height={24} />
-            <span>Privacy Protected</span>
-          </div>
-          <div className="badge-container">
-            <SafeImage src="/images/badges/guarantee.svg" alt="Expert Assistance" width={24} height={24} />
-            <span>Expert Assistance</span>
-          </div>
-        </div>
       </div>
-      {showAgreement && selectedOption && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-            <h3 className="text-xl font-semibold mb-4">Confirm Your Choice</h3>
-            <p className="text-gray-600 mb-6">I agree to receive information about insurance options and rates for: {selectedOption}</p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setShowAgreement(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAgree}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
-              >
-                I Agree
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   );
 } 
