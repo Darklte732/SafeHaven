@@ -112,60 +112,72 @@ export default function ChatPage() {
 
   const quickQuestions = [
     {
-      text: '🛡️ Learn about our insurance options',
-      query: 'What types of insurance do you offer?',
-      followUpOptions: [
-        'Tell me about final expense insurance',
-        'What are the coverage limits?',
-        'Do you offer term life insurance?'
-      ]
-    },
-    {
-      text: '💰 Get instant quote',
+      text: '💰 Get Your Free Quote Now',
       query: 'I would like to get a quote',
       followUpOptions: [
-        'Start quote process',
-        'Show me sample rates',
-        'What information do I need?'
+        'Show me rates under $50/month',
+        'Get quote for $10,000 coverage',
+        'Get quote for $25,000 coverage'
       ]
     },
     {
-      text: '📝 Understand the application process',
-      query: 'What is the application process like?',
+      text: '🎯 Find My Perfect Coverage',
+      query: 'Help me find the right coverage',
       followUpOptions: [
-        'How long does it take?',
-        'What documents do I need?',
-        'Can I apply online?'
+        'Coverage for final expenses',
+        'Coverage for my family',
+        'Coverage under $1 per day'
       ]
     },
     {
-      text: '🏥 Learn about medical requirements',
-      query: 'Do you require a medical exam?',
+      text: '💎 Special Offers Available',
+      query: 'What special offers do you have?',
       followUpOptions: [
-        'Are there health questions?',
-        'What conditions are covered?',
-        'Is there a waiting period?'
+        'First month free offer',
+        'Senior discount rates',
+        'No medical exam options'
       ]
     },
     {
-      text: '💬 Talk to an agent',
-      query: 'I would like to speak with an agent',
+      text: '⚡ Quick & Easy Application',
+      query: 'Start my application',
       followUpOptions: [
-        'Schedule a call',
-        'Get agent contact info',
-        'Request callback'
+        'Apply in 5 minutes',
+        'No medical exam needed',
+        'Instant approval possible'
+      ]
+    },
+    {
+      text: '🤝 Talk to an Expert',
+      query: 'Connect with an agent',
+      followUpOptions: [
+        'Get $500 off by talking to agent now',
+        'Free consultation available',
+        'Speak to licensed advisor'
       ]
     }
   ];
 
   // Add state for follow-up options
   const [showFollowUps, setShowFollowUps] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [showAgreement, setShowAgreement] = useState(false);
 
   // Function to handle follow-up option click
   const handleFollowUpClick = (option: string) => {
-    setInput(option);
-    setShowFollowUps(null);
-    handleSubmit(new Event('submit') as any);
+    setSelectedOption(option);
+    setShowAgreement(true);
+  };
+
+  const handleAgree = () => {
+    if (selectedOption) {
+      setInput(selectedOption);
+      handleSubmit(new Event('submit') as any);
+      setShowAgreement(false);
+      setSelectedOption(null);
+      setShowFollowUps(null);
+      setLoadingState(undefined); // Reset loading state to enable input
+    }
   };
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -328,12 +340,12 @@ export default function ChatPage() {
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Type your message..."
-                disabled={isLoading || loadingState !== null}
+                disabled={isLoading}
                 className="flex-1 h-12"
               />
               <Button 
                 type="submit" 
-                disabled={isLoading || loadingState !== null}
+                disabled={isLoading}
                 className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-8 py-3 h-12 text-lg font-medium shadow-lg rounded-md"
               >
                 {isLoading ? 'Sending...' : 'Send'}
@@ -382,6 +394,28 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+      {showAgreement && selectedOption && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h3 className="text-xl font-semibold mb-4">Confirm Your Choice</h3>
+            <p className="text-gray-600 mb-6">I agree to receive information about insurance options and rates for: {selectedOption}</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowAgreement(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAgree}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
+              >
+                I Agree
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 } 
