@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { Toaster } from 'sonner'
-import '@/styles/globals.css'
+import './globals.css'
+import { Navbar } from '@/components/layout/navbar'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SafeHaven Insurance',
-  description: 'Protecting what matters most with comprehensive insurance solutions.',
+  title: 'SafeHaven Insurance - Affordable Final Expense Coverage',
+  description: 'Get peace of mind with affordable final expense insurance coverage. Protect your family\'s future starting at just $20/month.',
 }
 
 export default function RootLayout({
@@ -18,8 +18,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <Navbar />
         {children}
-        <Toaster position="top-center" />
       </body>
     </html>
   )
