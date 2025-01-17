@@ -358,10 +358,22 @@ function getNextQuestion(info: UserInformation): { question: string; field: keyo
   };
 }
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export async function POST(req: Request) {
   try {
     const { messages, userInfo } = await req.json();
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages[messages.length - 1] as Message;
+    const previousMessages = messages.slice(0, -1) as Message[];
+
+    // Get the last assistant message to track conversation state
+    const lastAssistantMessage = messages
+      .slice()
+      .reverse()
+      .find((m: Message) => m.role === 'assistant');
 
     // Handle user information input
     if (userInfo?.isUserInfo) {
@@ -369,7 +381,14 @@ export async function POST(req: Request) {
       const forwarded = req.headers.get("x-forwarded-for");
       const ip = forwarded ? forwarded.split(/, /)[0] : req.headers.get("x-real-ip");
       
-      const info = parseUserInfo(userInfo.rawInput);
+      // Parse user info while maintaining context from previous messages
+      const existingInfo: UserInformation = {};
+      for (const msg of previousMessages) {
+        if (msg.role === 'user') {
+          Object.assign(existingInfo, parseUserInfo(msg.content, existingInfo));
+        }
+      }
+      const info = parseUserInfo(userInfo.rawInput, existingInfo);
       info.ipAddress = ip || undefined;
       
       // Check if there are any validation errors
@@ -414,6 +433,16 @@ export async function POST(req: Request) {
               { name: 'Preparing quotes', duration: 20000, status: 'pending' }
             ]
           }
+        });
+      }
+
+      // Check if we should skip the current question based on the last response
+      if (lastAssistantMessage?.content === question) {
+        const nextInfo = parseUserInfo(lastMessage.content, info);
+        const nextQuestion = getNextQuestion(nextInfo);
+        return NextResponse.json({
+          role: 'assistant',
+          content: nextQuestion.question
         });
       }
 
