@@ -1,4 +1,11 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
 
 interface UserInformation {
   state?: string | null;
@@ -9,6 +16,19 @@ interface UserInformation {
   coverageAmount?: string | null;
   health?: HealthQuestions;
   error?: string;
+  // Additional fields for lead capture
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  city?: string | null;
+  zipCode?: string | null;
+  tobaccoUse?: boolean;
+  bestTimeToCall?: string | null;
+  preferredContactMethod?: 'phone' | 'email' | 'text' | null;
+  leadSource?: string;
+  ipAddress?: string;
 }
 
 interface HealthQuestions {
@@ -62,8 +82,63 @@ function determineCarrierEligibility(info: UserInformation, health: HealthQuesti
   return eligibility;
 }
 
-function parseUserInfo(input: string): UserInformation {
-  const info: UserInformation = {};
+async function saveToSupabase(info: UserInformation): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase
+      .from('insurance_leads')
+      .insert([
+        {
+          first_name: info.firstName,
+          last_name: info.lastName,
+          email: info.email,
+          phone: info.phone,
+          address: info.address,
+          city: info.city,
+          state: info.state,
+          zip_code: info.zipCode,
+          gender: info.gender,
+          date_of_birth: info.dateOfBirth,
+          height: info.height,
+          weight: info.weight,
+          coverage_amount: info.coverageAmount,
+          tobacco_use: info.tobaccoUse,
+          best_time_to_call: info.bestTimeToCall,
+          preferred_contact_method: info.preferredContactMethod,
+          lead_source: info.leadSource || 'website_chat',
+          ip_address: info.ipAddress,
+          health_conditions: info.health,
+          created_at: new Date().toISOString(),
+          status: 'new',
+          carrier_eligibility: determineCarrierEligibility(info, info.health || defaultHealthQuestions)
+        }
+      ])
+      .select();
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving to Supabase:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to save lead information' 
+    };
+  }
+}
+
+const defaultHealthQuestions: HealthQuestions = {
+  medications: [],
+  heartConditions: false,
+  heartStints: false,
+  lungConditions: false,
+  highBloodPressure: false,
+  cancer: false,
+  diabetes: false,
+  stroke: false,
+  hospitalStays: false
+};
+
+function parseUserInfo(input: string, existingInfo?: UserInformation): UserInformation {
+  const info: UserInformation = existingInfo || {};
   
   // State
   const stateMatch = input.match(/(?:new jersey|nj|new york|ny|pennsylvania|pa)/i);
@@ -165,6 +240,28 @@ function parseUserInfo(input: string): UserInformation {
   }
 
   info.health = health;
+
+  // Additional field parsing
+  const nameMatch = input.match(/(?:name is|call me|i am) ([a-zA-Z]+)(?: ([a-zA-Z]+))?/i);
+  if (nameMatch) {
+    info.firstName = nameMatch[1];
+    info.lastName = nameMatch[2] || null;
+  }
+
+  const emailMatch = input.match(/\b[\w\.-]+@[\w\.-]+\.\w+\b/);
+  if (emailMatch) info.email = emailMatch[0];
+
+  const phoneMatch = input.match(/\b(\d{3}[-.]?\d{3}[-.]?\d{4})\b/);
+  if (phoneMatch) info.phone = phoneMatch[1].replace(/[-.]/, '');
+
+  const zipMatch = input.match(/\b\d{5}(?:-\d{4})?\b/);
+  if (zipMatch) info.zipCode = zipMatch[0];
+
+  const tobaccoMatch = input.toLowerCase();
+  if (tobaccoMatch.includes('tobacco') || tobaccoMatch.includes('smoke')) {
+    info.tobaccoUse = !tobaccoMatch.includes('no');
+  }
+
   return info;
 }
 
@@ -187,7 +284,12 @@ export async function POST(req: Request) {
 
     // Handle user information input
     if (userInfo?.isUserInfo) {
+      // Get IP address from request headers
+      const forwarded = req.headers.get("x-forwarded-for");
+      const ip = forwarded ? forwarded.split(/, /)[0] : req.headers.get("x-real-ip");
+      
       const info = parseUserInfo(userInfo.rawInput);
+      info.ipAddress = ip || undefined;
       
       // Check if there are any validation errors
       if (info.error) {
@@ -198,14 +300,25 @@ export async function POST(req: Request) {
       }
 
       // Check for missing required fields
-      const requiredFields = ['state', 'gender', 'dateOfBirth', 'height', 'weight', 'coverageAmount'] as const;
+      const requiredFields = [
+        'state', 'gender', 'dateOfBirth', 'height', 'weight', 'coverageAmount',
+        'firstName', 'lastName', 'email', 'phone'
+      ] as const;
       type RequiredField = typeof requiredFields[number];
       const missingFields = requiredFields.filter(field => !info[field as keyof UserInformation]);
       
       if (missingFields.length > 0) {
         return NextResponse.json({
           role: 'assistant',
-          content: `I still need some information to provide accurate quotes. Please provide your:\n${missingFields.join(', ')}`
+          content: `To provide you with accurate quotes and ensure we can contact you with the best options, I need a few more details. Please provide your:\n\n${missingFields.map(field => {
+            switch(field) {
+              case 'firstName': return '- First Name';
+              case 'lastName': return '- Last Name';
+              case 'email': return '- Email Address';
+              case 'phone': return '- Phone Number';
+              default: return `- ${field.charAt(0).toUpperCase() + field.slice(1)}`;
+            }
+          }).join('\n')}`
         });
       }
 
@@ -213,18 +326,26 @@ export async function POST(req: Request) {
       if (!info.health || Object.values(info.health).every(v => !v)) {
         return NextResponse.json({
           role: 'assistant',
-          content: `Thank you for providing your basic information. Now, I need to ask you a few health questions to find the best coverage options. Please answer Yes or No to each:\n\n` +
+          content: `Thank you ${info.firstName}! Now, I need to ask you a few health questions to find the best coverage options. Please answer Yes or No to each:\n\n` +
                   `1. Do you have any heart conditions or stints?\n` +
                   `2. Any lung conditions?\n` +
                   `3. High blood pressure?\n` +
                   `4. Any history of cancer?\n` +
                   `5. Do you have diabetes? If yes, is it Type 1 or Type 2, and do you use insulin?\n` +
                   `6. Any history of stroke?\n` +
-                  `7. Any hospital stays in the last 12 months?`
+                  `7. Any hospital stays in the last 12 months?\n` +
+                  `8. Do you use any tobacco products?`
         });
       }
 
-      // If we have health information, determine carrier eligibility
+      // If we have all information, save to Supabase before determining carriers
+      const saveResult = await saveToSupabase(info);
+      if (!saveResult.success) {
+        console.error('Failed to save lead:', saveResult.error);
+        // Continue with the flow but log the error
+      }
+
+      // Determine carrier eligibility
       const eligibility = determineCarrierEligibility(info, info.health);
       const eligibleCarriers = Object.entries(eligibility)
         .filter(([_, eligible]) => eligible)
@@ -232,9 +353,9 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         role: 'assistant',
-        content: `Based on your health profile, I've identified the following carriers that can offer you the best coverage:\n\n` +
+        content: `Thank you for providing all the information, ${info.firstName}! Based on your profile, I've identified the following carriers that can offer you the best coverage:\n\n` +
                 `${eligibleCarriers.length > 0 ? eligibleCarriers.join('\n') : 'We may need to explore additional options.'}\n\n` +
-                `I'll now search for the best rates from these carriers. One moment please...`,
+                `I'll now search for the best rates from these carriers. One of our licensed agents will contact you ${info.preferredContactMethod ? `via ${info.preferredContactMethod}` : ''} with personalized quotes shortly.`,
         loadingState: {
           status: 'processing',
           startTime: Date.now(),
@@ -253,7 +374,10 @@ export async function POST(req: Request) {
     // Default response for other messages
     return NextResponse.json({
       role: 'assistant',
-      content: 'I need some more information to provide accurate quotes. Please provide:\n' +
+      content: 'To get started with your quote, I\'ll need some information. Please provide:\n' +
+               '- First and Last Name\n' +
+               '- Email Address\n' +
+               '- Phone Number\n' +
                '- State (NJ, NY, or PA)\n' +
                '- Gender (male or female)\n' +
                '- Date of Birth (MM/DD/YYYY)\n' +
