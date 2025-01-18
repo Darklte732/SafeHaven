@@ -61,6 +61,21 @@ export function GuideDownloadForm() {
     return errors;
   };
 
+  const handleDownload = () => {
+    // Create a link element
+    const link = document.createElement('a');
+    link.href = '/final-expense-guide.pdf';
+    link.download = 'SafeHaven-Final-Expense-Guide.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Fallback: Open in new tab if download doesn't start
+    setTimeout(() => {
+      window.open('/final-expense-guide.pdf', '_blank');
+    }, 1000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -182,15 +197,13 @@ export function GuideDownloadForm() {
           )}
         </Button>
       ) : (
-        <a 
-          href="/final-expense-guide.pdf" 
-          download="SafeHaven-Final-Expense-Guide.pdf"
-          className="block"
+        <Button 
+          type="button" 
+          className="w-full bg-green-600 hover:bg-green-700"
+          onClick={handleDownload}
         >
-          <Button type="button" className="w-full bg-green-600 hover:bg-green-700">
-            Download Free Guide
-          </Button>
-        </a>
+          Download Free Guide
+        </Button>
       )}
 
       <FormSuccess message={successMessage} />
