@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { SafeImage } from '../components/ui/image'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
+import { BeneficiaryWorkbookSection } from '@/components/BeneficiaryWorkbookSection'
 
 // Lazy load components that are not needed immediately
 const FAQItem = lazy(() => import('../components/ui/faq-item').then(mod => ({ default: mod.FAQItem })))
@@ -400,6 +401,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <GuideDownloadSection />
+      <BeneficiaryWorkbookSection />
     </main>
   )
 }
