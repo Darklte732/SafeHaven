@@ -36,18 +36,20 @@ async function initSupabaseClient(retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
       const { data, error } = await supabase
-        .from('quotes')
+        .from('leads')
         .select('count(*)')
         .limit(1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Connection test error:', error);
+        throw error;
+      }
       
       console.log('Supabase connection successful');
       return supabase;
     } catch (error) {
       console.error(`Connection attempt ${i + 1} failed:`, error);
       if (i === retries - 1) throw error;
-      // Wait before retrying (exponential backoff)
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
     }
   }
@@ -59,7 +61,6 @@ export async function POST(request: Request) {
   let supabase;
   
   try {
-    // Initialize client with retries
     supabase = await initSupabaseClient();
 
     const rawData = await request.json();
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
       phone: rawData.phone?.trim() || null,
       zip: rawData.zip?.trim() || null,
       type: rawData.type || 'guide',
-      status: rawData.status || 'new',
+      status: 'new',
       family_members: rawData.family_members?.toString() || null,
       message: rawData.message?.trim() || null,
       coverage_amount: rawData.coverage_amount?.toString() || null,
@@ -88,14 +89,17 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString()
     };
 
-    // Insert with retry logic
+    console.log('Formatted lead data:', leadData);
+
+    // Insert into leads table
     const { data: insertedLead, error: insertError } = await supabase
-      .from('quotes')
+      .from('leads')
       .insert([leadData])
       .select()
       .single();
 
     if (insertError) {
+      console.error('Insert error:', insertError);
       if (insertError.code === '23505') {
         return NextResponse.json(
           { error: 'This email has already been registered' },
