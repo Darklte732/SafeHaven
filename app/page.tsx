@@ -39,7 +39,7 @@ export default function Home() {
                 Get Your Free Quote
               </Link>
               <Link 
-                href="/features" 
+                href="/guide" 
                 className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-base font-medium text-blue-600 bg-white border-2 border-blue-600 rounded-md shadow-sm hover:bg-gray-50 transition-colors"
               >
                 <span>Learn More</span>
