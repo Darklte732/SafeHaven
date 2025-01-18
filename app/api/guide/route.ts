@@ -76,41 +76,32 @@ export async function POST(req: Request) {
       throw new Error('Failed to store lead information');
     }
 
-    // First try to get a direct download URL
-    const { data: { publicUrl } } = supabase.storage
+    // Download the file directly from Supabase
+    console.log('Downloading file from storage...');
+    const { data: fileData, error: downloadError } = await supabase.storage
       .from(BUCKET_NAME)
-      .getPublicUrl(FILE_PATH, {
-        download: true,
-      });
+      .download(FILE_PATH);
 
-    // If we have a public URL, use it
-    if (publicUrl) {
-      console.log('Using public URL for download:', publicUrl);
-      return NextResponse.json({ 
-        url: publicUrl,
-        fileName: 'SafeHaven-Final-Expense-Guide.pdf',
-        contentType: 'application/pdf'
-      });
+    if (downloadError || !fileData) {
+      console.error('Failed to download file:', downloadError);
+      throw new Error('Failed to retrieve the guide');
     }
 
-    // Fallback to signed URL if public URL fails
-    console.log('Generating signed URL as fallback...');
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .createSignedUrl(FILE_PATH, 3600, {
-        download: true
-      });
+    // Convert blob to array buffer
+    const arrayBuffer = await fileData.arrayBuffer();
 
-    if (signedUrlError || !signedUrlData?.signedUrl) {
-      console.error('Failed to generate any download URL:', signedUrlError);
-      throw new Error('Failed to generate download URL');
-    }
+    // Create response with proper headers
+    const headers = new Headers({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="SafeHaven-Final-Expense-Guide.pdf"',
+      'Content-Length': arrayBuffer.byteLength.toString(),
+      'Cache-Control': 'no-cache'
+    });
 
-    console.log('Guide download URL generated successfully');
-    return NextResponse.json({ 
-      url: signedUrlData.signedUrl,
-      fileName: 'SafeHaven-Final-Expense-Guide.pdf',
-      contentType: 'application/pdf'
+    // Return the file as a stream
+    return new NextResponse(arrayBuffer, {
+      status: 200,
+      headers
     });
 
   } catch (error: any) {
