@@ -106,7 +106,13 @@ export async function POST(req: Request) {
     console.log('Generating signed URL...');
     const { data: signedUrl, error: signedUrlError } = await supabase.storage
       .from(BUCKET_NAME)
-      .createSignedUrl(FILE_PATH, 300); // 5 minutes expiry
+      .createSignedUrl(FILE_PATH, 300, {
+        download: true,
+        transform: {
+          width: 2480, // A4 width at 300 DPI
+          height: 3508 // A4 height at 300 DPI
+        }
+      });
 
     if (signedUrlError) {
       console.error('Signed URL error:', signedUrlError);
@@ -116,6 +122,16 @@ export async function POST(req: Request) {
     if (!signedUrl?.signedUrl) {
       throw new Error('No signed URL generated');
     }
+
+    // Get public URL as fallback
+    const { data: { publicUrl } } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(FILE_PATH);
+
+    console.log('Generated URLs:', {
+      signedUrl: signedUrl.signedUrl,
+      publicUrl
+    });
 
     // Store or update lead information
     console.log('Updating lead information...');

@@ -74,38 +74,38 @@ export function GuideDownloadForm() {
     }
 
     try {
+      console.log('Submitting form data:', formData);
       const response = await fetch('/api/guide', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
+      console.log('Response status:', response.status);
+      const contentType = response.headers.get('content-type');
+      console.log('Response content type:', contentType);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('API error:', error);
         throw new Error(error.error || 'Failed to download guide');
       }
 
       const data = await response.json();
+      console.log('Response data:', data);
+
       if (!data.url) {
         throw new Error('No download URL received');
       }
 
-      // Create a temporary link and click it to start the download
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = data.url;
-      a.download = 'Final-Expense-Insurance-Guide.pdf';
-      document.body.appendChild(a);
-      a.click();
-      
-      // Cleanup after a short delay
-      setTimeout(() => {
-        document.body.removeChild(a);
-      }, 100);
+      console.log('Starting download from URL:', data.url);
+
+      // Open the URL in a new tab
+      window.open(data.url, '_blank');
 
       setSuccessMessage('Guide downloaded successfully!');
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
-      toast.success('Guide downloaded successfully!');
+      toast.success('Your guide will open in a new tab. Please save it from there.');
     } catch (error) {
       console.error('Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to download guide';
