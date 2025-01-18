@@ -14,9 +14,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
-  },
-  db: {
-    schema: 'public'
   }
 });
 
@@ -26,7 +23,7 @@ export async function POST(request: Request) {
   try {
     // Test database connection first
     const { data: testData, error: testError } = await supabase
-      .from('customers')
+      .from('leads')
       .select('id')
       .limit(1);
 
@@ -47,24 +44,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // Format data for customers table
-    const customerData = {
-      first_name: data.name.split(' ')[0],
-      last_name: data.name.split(' ').slice(1).join(' ') || null, // Handle single name
+    // Format data for leads table
+    const leadData = {
+      name: data.name.trim(),
       email: data.email.toLowerCase().trim(),
       phone: data.phone || null,
-      zip: data.zip || null,
-      created_at: new Date().toISOString(),
+      zip_code: data.zip || null,
+      guide_requested: data.type === 'guide',
       status: 'new',
-      type: data.type || 'guide'
+      source: 'website',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
-    console.log('Formatted customer data:', customerData);
+    console.log('Formatted lead data:', leadData);
 
-    // Insert into customers table
+    // Insert into leads table
     const { data: insertedData, error: insertError } = await supabase
-      .from('customers')
-      .insert([customerData])
+      .from('leads')
+      .insert([leadData])
       .select()
       .single();
 

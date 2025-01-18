@@ -7,6 +7,8 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { PhoneInput } from './PhoneInput';
 import { Label } from './Label';
 
+const GUIDE_URL = 'https://drive.google.com/file/d/1Hs_Ys0Iu_0XJIlWRFtPjwBZKE-5_GBXJ/view?usp=sharing';
+
 export function GuideDownloadForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -43,7 +45,6 @@ export function GuideDownloadForm() {
       }
 
       setSuccess(true);
-      window.open('https://drive.google.com/file/d/1Hs_Ys0Iu_0XJIlWRFtPjwBZKE-5_GBXJ/view?usp=sharing', '_blank');
     } catch (err) {
       console.error('Error submitting form:', err);
       setError(err instanceof Error ? err.message : 'Failed to save lead information');
@@ -54,9 +55,22 @@ export function GuideDownloadForm() {
 
   if (success) {
     return (
-      <FormSuccess 
-        message="Thank you! Your guide will open in a new tab. If it doesn't open automatically, please check your browser's popup settings." 
-      />
+      <div className="space-y-4">
+        <FormSuccess message="Thank you! Your information has been saved." />
+        <a 
+          href={GUIDE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full"
+        >
+          <button
+            type="button"
+            className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition-colors"
+          >
+            Download Guide
+          </button>
+        </a>
+      </div>
     );
   }
 
@@ -119,7 +133,7 @@ export function GuideDownloadForm() {
         disabled={loading}
         className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
       >
-        {loading ? <LoadingSpinner /> : 'Download Free Guide'}
+        {loading ? <LoadingSpinner /> : 'Submit Form'}
       </button>
     </form>
   );
