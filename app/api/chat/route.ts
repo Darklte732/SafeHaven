@@ -1,124 +1,75 @@
+'use server';
+
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import Anthropic from '@anthropic-ai/sdk';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
-interface UserInformation {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  height?: string;
-  weight?: string;
-  tobaccoUse?: boolean;
-  coverageAmount?: number;
-  bestTimeToCall?: string;
-  preferredContactMethod?: string;
-  leadSource?: string;
-  ipAddress?: string;
-  isUserInfo?: boolean;
-  rawInput?: string;
-}
+const CONVERSATION_PROMPT = `You are Grace Santos, a licensed Life Insurance Broker with access to over 38 top-rated carriers. You specialize in Final Expense Insurance and are an expert negotiator and closer.
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+CORE IDENTITY:
+- Name: Grace Santos
+- Role: Licensed Insurance Agent
+- Specialization: Final Expense Insurance
+- Primary Mission: Provide compassionate financial protection for families
+- Expertise: Expert negotiator and closer
 
-export async function POST(req: Request) {
+COMMUNICATION GUIDELINES:
+- Use natural, conversational language
+- Show empathy and understanding
+- Never pressure the client
+- Wait for client responses before proceeding
+- Provide transparent information
+- Focus on building trust
+
+CRITICAL INSTRUCTION:
+- ALWAYS wait for client response before proceeding
+- After asking ANY question, pause and wait for complete client input
+- Do NOT advance to next stage until client responds
+- If no response received, gently repeat or rephrase the question
+
+You must maintain this personality and follow these guidelines throughout the entire conversation.`;
+
+export async function POST(request: Request) {
   try {
-    const { messages, userInfo } = await req.json();
-    const lastMessage = messages[messages.length - 1];
-    const previousMessages = messages.slice(0, -1);
-    const lastAssistantMessage = previousMessages.reverse().find((m: Message) => m.role === 'assistant')?.content || '';
+    const { message, userProfile, preQualAnswers } = await request.json();
 
-    let response = '';
-    let currentUserInfo: UserInformation = {};
-    
-    // Extract user information from the message
-    if (userInfo?.isUserInfo && userInfo.rawInput) {
-      const input = userInfo.rawInput.toLowerCase();
-      
-      // Name extraction
-      const nameMatch = input.match(/(?:my name is|i am|i'm)\s+([a-z]+(?:\s+[a-z]+)?)/i);
-      if (nameMatch) {
-        const fullName = nameMatch[1].trim().split(' ');
-        currentUserInfo.firstName = fullName[0];
-        if (fullName.length > 1) {
-          currentUserInfo.lastName = fullName[1];
+    // Add context about the user's previous answers
+    const contextPrompt = `
+Client Information:
+Name: ${userProfile.firstName} ${userProfile.lastName}
+Email: ${userProfile.email}
+Phone: ${userProfile.phone}
+Location: ${userProfile.city}, ${userProfile.state} ${userProfile.zipCode}
+
+Pre-qualification Answers:
+${Object.entries(preQualAnswers).map(([key, value]) => `${key}: ${value}`).join('\n')}
+
+Use this information to personalize the conversation but don't repeat questions about data you already have. Continue the conversation naturally based on the client's responses.`;
+
+    const response = await anthropic.messages.create({
+      model: 'claude-3-opus-20240229',
+      max_tokens: 1024,
+      temperature: 0.7,
+      system: CONVERSATION_PROMPT + '\n\n' + contextPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: message
         }
-      }
-      
-      // Email extraction
-      const emailMatch = input.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/i);
-      if (emailMatch) {
-        currentUserInfo.email = emailMatch[1];
-      }
-      
-      // Phone extraction
-      const phoneMatch = input.match(/(\d{3}[-.]?\d{3}[-.]?\d{4})/);
-      if (phoneMatch) {
-        currentUserInfo.phone = phoneMatch[1];
-      }
-    }
+      ]
+    });
 
-    // Determine next question based on conversation state
-    if (messages.length === 1) {
-      response = "Let's get started! What is your first and last name? Example: John Smith";
-    }
-    else if (lastAssistantMessage.includes("What is your first and last name?")) {
-      const nameParts = lastMessage.content.trim().split(' ');
-      if (nameParts.length >= 2) {
-        currentUserInfo.firstName = nameParts[0];
-        currentUserInfo.lastName = nameParts.slice(1).join(' ');
-        response = `Nice to meet you ${currentUserInfo.firstName}! What's your email address?`;
-      } else {
-        response = "I need both your first and last name. Please provide them both (Example: John Smith)";
-      }
-    }
-    else if (lastAssistantMessage.includes("What's your email address?")) {
-      const emailMatch = lastMessage.content.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/i);
-      if (emailMatch) {
-        currentUserInfo.email = emailMatch[1];
-        response = "Great! What's your phone number?";
-      } else {
-        response = "I need a valid email address. Please provide it in the format: example@domain.com";
-      }
-    }
-    else if (lastAssistantMessage.includes("What's your phone number?")) {
-      const phoneMatch = lastMessage.content.match(/(\d{3}[-.]?\d{3}[-.]?\d{4})/);
-      if (phoneMatch) {
-        currentUserInfo.phone = phoneMatch[1];
-        response = "Perfect! What state do you live in? (Please use the two-letter abbreviation, e.g., NY)";
-      } else {
-        response = "I need a valid phone number. Please provide it in the format: 123-456-7890";
-      }
-    }
-    else {
-      response = "I'm here to help you find the right insurance coverage. What would you like to know?";
-    }
-
-    return NextResponse.json({
-      content: response,
-      userInfo: currentUserInfo,
-      error: null,
-      details: null
+    return NextResponse.json({ 
+      response: response.content[0].type === 'text' ? response.content[0].text : 'I apologize, but I encountered an error. Please try again.' 
     });
   } catch (error) {
-    console.error('Error processing request:', error);
-    return NextResponse.json({
-      content: "I apologize, but I encountered an error. Please try again.",
-      error: "Internal server error",
-      details: error instanceof Error ? error.message : "Unknown error"
-    });
+    console.error('Chat API error:', error);
+    return NextResponse.json(
+      { error: 'Failed to process chat message' },
+      { status: 500 }
+    );
   }
 }
