@@ -178,7 +178,7 @@ export function GuideDownloadForm() {
               Processing...
             </>
           ) : (
-            'Submit Form'
+            'Download Free Guide'
           )}
         </Button>
       ) : (
