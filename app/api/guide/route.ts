@@ -5,10 +5,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const PDF_URL = 'https://powrsyajxwotomihmvum.supabase.co/storage/v1/object/public/guides/final-expense-guide.pdf';
-const BUCKET_NAME = 'guides';
-const FILE_NAME = 'final-expense-guide.pdf';
-
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -24,26 +20,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save lead information' }, { status: 500 });
     }
 
-    // Get both public URL and signed URL as fallbacks
-    const { data: signedUrlData } = await supabase
-      .storage
-      .from(BUCKET_NAME)
-      .createSignedUrl(FILE_NAME, 300);
-
-    const { data: publicUrlData } = supabase
-      .storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(FILE_NAME);
-
-    // Return all available URLs for the client to try
-    return NextResponse.json({
-      success: true,
-      urls: {
-        direct: PDF_URL,
-        signed: signedUrlData?.signedUrl,
-        public: publicUrlData?.publicUrl
-      }
-    });
+    return NextResponse.json({ success: true });
 
   } catch (error) {
     console.error('Server error:', error);

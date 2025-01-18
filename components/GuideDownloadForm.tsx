@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { FormError } from '@/components/ui/form-error';
 import { FormSuccess } from '@/components/ui/form-success';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import Link from 'next/link';
 
 interface FormData {
   name: string;
@@ -35,6 +36,7 @@ export function GuideDownloadForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showDownloadButton, setShowDownloadButton] = useState(false);
 
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {};
@@ -65,6 +67,7 @@ export function GuideDownloadForm() {
     setIsLoading(true);
     setSuccessMessage('');
     setErrors({});
+    setShowDownloadButton(false);
     
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
@@ -84,39 +87,16 @@ export function GuideDownloadForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to download guide');
-      }
-
-      const data = await response.json();
-      
-      if (!data.success || !data.url) {
-        throw new Error('Failed to get download URL');
+        throw new Error(errorData.error || 'Failed to process request');
       }
 
       // Show success message
-      setSuccessMessage('Thank you! Your guide is being downloaded.');
+      setSuccessMessage('Thank you! Click the button below to download your guide.');
       toast.success('Form submitted successfully!');
       
-      // Reset form
+      // Reset form and show download button
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
-
-      // Create a hidden iframe for download
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-
-      // Set iframe source to trigger download
-      if (iframe.contentWindow) {
-        iframe.src = data.url;
-      }
-
-      // Remove iframe after a delay
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        
-        // Fallback: If download hasn't started, open in new tab
-        window.open(data.url, '_blank');
-      }, 1000);
+      setShowDownloadButton(true);
 
     } catch (error) {
       console.error('Error:', error);
@@ -191,16 +171,29 @@ export function GuideDownloadForm() {
         <FormError message={errors.zipCode} />
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <LoadingSpinner className="mr-2" />
-            Processing...
-          </>
-        ) : (
-          'Download Free Guide'
-        )}
-      </Button>
+      {!showDownloadButton ? (
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <LoadingSpinner className="mr-2" />
+              Processing...
+            </>
+          ) : (
+            'Submit Form'
+          )}
+        </Button>
+      ) : (
+        <a 
+          href="https://powrsyajxwotomihmvum.supabase.co/storage/v1/object/public/guides/final-expense-guide.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block"
+        >
+          <Button type="button" className="w-full bg-green-600 hover:bg-green-700">
+            Download Free Guide
+          </Button>
+        </a>
+      )}
 
       <FormSuccess message={successMessage} />
     </form>
