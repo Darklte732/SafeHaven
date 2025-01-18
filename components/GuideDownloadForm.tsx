@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { FormError } from '@/components/ui/form-error';
 import { FormSuccess } from '@/components/ui/form-success';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import Link from 'next/link';
 
 interface FormData {
   name: string;
@@ -35,6 +36,7 @@ export function GuideDownloadForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {};
@@ -65,6 +67,7 @@ export function GuideDownloadForm() {
     setIsLoading(true);
     setSuccessMessage('');
     setErrors({});
+    setDownloadUrl(null);
     
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
@@ -87,17 +90,13 @@ export function GuideDownloadForm() {
 
       const data = await response.json();
       
-      // Show success message first
-      setSuccessMessage('Thank you! Your guide is ready for download.');
+      // Show success message and set download URL
+      setSuccessMessage('Thank you! Click the button below to download your guide.');
       toast.success('Form submitted successfully!');
+      setDownloadUrl(data.downloadUrl);
       
       // Reset form
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
-      
-      // Redirect to download URL after a short delay
-      setTimeout(() => {
-        window.location.href = data.downloadUrl;
-      }, 1500);
 
     } catch (error) {
       console.error('Error:', error);
@@ -172,16 +171,24 @@ export function GuideDownloadForm() {
         <FormError message={errors.zipCode} />
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <LoadingSpinner className="mr-2" />
-            Processing...
-          </>
-        ) : (
-          'Download Free Guide'
-        )}
-      </Button>
+      {!downloadUrl ? (
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <LoadingSpinner className="mr-2" />
+              Processing...
+            </>
+          ) : (
+            'Submit Form'
+          )}
+        </Button>
+      ) : (
+        <Link href={downloadUrl} target="_blank" rel="noopener noreferrer">
+          <Button type="button" className="w-full bg-green-600 hover:bg-green-700">
+            Download Free Guide
+          </Button>
+        </Link>
+      )}
 
       <FormSuccess message={successMessage} />
     </form>
