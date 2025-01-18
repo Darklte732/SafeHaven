@@ -31,13 +31,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to retrieve guide' }, { status: 500 });
     }
 
+    // Convert the file data to a Buffer if it's not already
+    const buffer = Buffer.from(await fileData.arrayBuffer());
+
     // Create response with the PDF file
-    const response = new NextResponse(fileData);
+    const response = new NextResponse(buffer);
     
     // Set appropriate headers for PDF download
     response.headers.set('Content-Type', 'application/pdf');
     response.headers.set('Content-Disposition', 'attachment; filename="SafeHaven-Final-Expense-Guide.pdf"');
-    response.headers.set('Content-Length', fileData.size.toString());
+    response.headers.set('Content-Length', buffer.length.toString());
     
     return response;
 

@@ -74,25 +74,35 @@ export function GuideDownloadForm() {
     }
 
     try {
-      // Create a hidden form for file download
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/api/guide';
-      form.style.display = 'none';
-
-      // Add form data
-      Object.entries(formData).forEach(([key, value]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
+      const response = await fetch('/api/guide', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
-      // Add form to body and submit
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to download guide');
+      }
+
+      // Get the blob data from the response
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'SafeHaven-Final-Expense-Guide.pdf';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       // Show success message
       setSuccessMessage('Thank you! Your guide is being downloaded.');
