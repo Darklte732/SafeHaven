@@ -24,6 +24,9 @@ interface FormErrors {
   zipCode?: string;
 }
 
+// Direct URL to the PDF in Supabase
+const PDF_URL = 'https://powrsyajxwotomihmvum.supabase.co/storage/v1/object/public/guides/final-expense-guide.pdf';
+
 export function GuideDownloadForm() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -62,17 +65,33 @@ export function GuideDownloadForm() {
   };
 
   const handleDownload = () => {
-    // Create a link element
-    const link = document.createElement('a');
-    link.href = '/final-expense-guide.pdf';
-    link.download = 'SafeHaven-Final-Expense-Guide.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // First attempt: Direct window.open
+    window.open(PDF_URL, '_blank');
 
-    // Fallback: Open in new tab if download doesn't start
+    // Second attempt: After a short delay, try iframe
     setTimeout(() => {
-      window.open('/final-expense-guide.pdf', '_blank');
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = PDF_URL;
+      document.body.appendChild(iframe);
+      
+      // Remove iframe after it's loaded
+      iframe.onload = () => {
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 1000);
+      };
+    }, 500);
+
+    // Third attempt: Create and click a link
+    setTimeout(() => {
+      const link = document.createElement('a');
+      link.href = PDF_URL;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }, 1000);
   };
 
