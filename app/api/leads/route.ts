@@ -6,8 +6,13 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: Request) {
   console.log('Starting POST request handler');
+  console.log('Environment variables:', {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseServiceKey
+  });
   
   try {
+    console.log('Initializing Supabase client with URL:', supabaseUrl);
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     console.log('Supabase client initialized');
 
@@ -40,20 +45,43 @@ export async function POST(request: Request) {
 
     console.log('Formatted customer data:', customerData);
 
-    // Insert into customers table
-    const { error: insertError } = await supabase
+    // Test database connection
+    const { data: testData, error: testError } = await supabase
       .from('customers')
-      .insert(customerData);
+      .select('id')
+      .limit(1);
+
+    if (testError) {
+      console.error('Database connection test failed:', testError);
+      return NextResponse.json(
+        { error: 'Unable to connect to database' },
+        { status: 500 }
+      );
+    }
+
+    console.log('Database connection test successful');
+
+    // Insert into customers table
+    const { data: insertedData, error: insertError } = await supabase
+      .from('customers')
+      .insert(customerData)
+      .select();
 
     if (insertError) {
       console.error('Error inserting data:', insertError);
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { error: 'This email has already been registered' },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
         { error: 'Failed to save lead information' },
         { status: 500 }
       );
     }
 
-    console.log('Successfully saved lead data');
+    console.log('Successfully saved lead data:', insertedData);
     return NextResponse.json({ success: true });
 
   } catch (error) {
