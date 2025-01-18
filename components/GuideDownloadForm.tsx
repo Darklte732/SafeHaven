@@ -74,7 +74,6 @@ export function GuideDownloadForm() {
     }
 
     try {
-      console.log('Submitting form data:', formData);
       const response = await fetch('/api/guide', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,40 +82,26 @@ export function GuideDownloadForm() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to download guide');
+        throw new Error(error.error || 'Failed to process request');
       }
 
       const data = await response.json();
-      if (!data.url) {
-        throw new Error('No download URL received');
-      }
-
-      // Create a hidden download link
-      const downloadLink = document.createElement('a');
-      downloadLink.href = data.url;
-      downloadLink.target = '_blank';
-      downloadLink.download = data.fileName || 'SafeHaven-Final-Expense-Guide.pdf';
-      downloadLink.style.display = 'none';
-      document.body.appendChild(downloadLink);
-
-      // Try direct download first
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      // Show success message
-      setSuccessMessage('Guide download started!');
-      toast.success('Your guide is being downloaded!');
+      
+      // Show success message first
+      setSuccessMessage('Thank you! Your guide is ready for download.');
+      toast.success('Form submitted successfully!');
+      
+      // Reset form
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
-
-      // Fallback: If download doesn't start, open in new tab
-      const isDownloading = confirm('Click OK if the download has not started. The guide will open in a new tab.');
-      if (isDownloading) {
-        window.open(data.url, '_blank');
-      }
+      
+      // Redirect to download URL after a short delay
+      setTimeout(() => {
+        window.location.href = data.downloadUrl;
+      }, 1500);
 
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to download guide';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process request';
       toast.error(errorMessage);
       setErrors(prev => ({ ...prev, submit: errorMessage }));
     } finally {
