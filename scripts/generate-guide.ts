@@ -2,9 +2,24 @@ import puppeteer from 'puppeteer';
 import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env.local
+dotenv.config({ path: '.env.local' });
 
 const BUCKET_NAME = 'guides';
 const FILE_PATH = 'final-expense-guide.pdf';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing required environment variables');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function generateAndUploadGuide() {
   let browser;
@@ -42,11 +57,6 @@ async function generateAndUploadGuide() {
     });
 
     console.log('PDF generated successfully');
-
-    // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Check if bucket exists, create if not
     console.log('Checking storage bucket...');

@@ -85,45 +85,27 @@ export function GuideDownloadForm() {
         throw new Error(error.error || 'Failed to download guide');
       }
 
-      // Check if the response is a PDF
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/pdf')) {
-        throw new Error('Invalid response format. Expected PDF.');
+      const data = await response.json();
+      if (!data.url) {
+        throw new Error('No download URL received');
       }
 
-      const blob = await response.blob();
-      if (blob.size === 0) {
-        throw new Error('Received empty PDF file');
-      }
+      // Create a temporary link and click it to start the download
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = data.url;
+      a.download = 'Final-Expense-Insurance-Guide.pdf';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup after a short delay
+      setTimeout(() => {
+        document.body.removeChild(a);
+      }, 100);
 
-      try {
-        // Create download link
-        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'Final-Expense-Insurance-Guide.pdf';
-        
-        // Append to body, click, and cleanup
-        document.body.appendChild(a);
-        a.click();
-        
-        // Small delay before cleanup to ensure download starts
-        setTimeout(() => {
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        }, 100);
-
-        setSuccessMessage('Guide downloaded successfully!');
-        setFormData({ name: '', email: '', phone: '', zipCode: '' });
-        toast.success('Guide downloaded successfully!');
-      } catch (downloadError) {
-        console.error('Download error:', downloadError);
-        // Fallback: Open PDF in new tab if download fails
-        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-        window.open(url, '_blank');
-        toast.success('Guide opened in new tab. Please save it from there.');
-      }
+      setSuccessMessage('Guide downloaded successfully!');
+      setFormData({ name: '', email: '', phone: '', zipCode: '' });
+      toast.success('Guide downloaded successfully!');
     } catch (error) {
       console.error('Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to download guide';

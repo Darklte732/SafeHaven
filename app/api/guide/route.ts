@@ -75,36 +75,46 @@ export async function POST(req: Request) {
       }
     }
 
-    // Check if bucket exists, create if not
-    console.log('Checking storage bucket...');
+    // Make sure bucket is public
+    console.log('Checking bucket policy...');
     const { data: buckets } = await supabase.storage.listBuckets();
     const guidesBucket = buckets?.find(b => b.name === BUCKET_NAME);
     
     if (!guidesBucket) {
       console.log('Creating storage bucket...');
       const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
-        public: false
+        public: true // Make bucket public
       });
       
       if (createError) {
         console.error('Bucket creation error:', createError);
         throw new Error('Failed to create storage bucket');
       }
+    } else if (!guidesBucket.public) {
+      console.log('Making bucket public...');
+      const { error: updateError } = await supabase.storage.updateBucket(BUCKET_NAME, {
+        public: true
+      });
+      
+      if (updateError) {
+        console.error('Bucket update error:', updateError);
+        throw new Error('Failed to update bucket visibility');
+      }
     }
 
-    // Get the guide file from storage
-    console.log('Fetching guide from storage...');
-    const { data: fileData, error: fileError } = await supabase.storage
+    // Get a signed URL for the guide
+    console.log('Generating signed URL...');
+    const { data: signedUrl, error: signedUrlError } = await supabase.storage
       .from(BUCKET_NAME)
-      .download(FILE_PATH);
+      .createSignedUrl(FILE_PATH, 300); // 5 minutes expiry
 
-    if (fileError) {
-      console.error('File fetch error:', fileError);
-      throw new Error('Failed to fetch guide file');
+    if (signedUrlError) {
+      console.error('Signed URL error:', signedUrlError);
+      throw new Error('Failed to generate download URL');
     }
 
-    if (!fileData) {
-      throw new Error('Guide file not found');
+    if (!signedUrl?.signedUrl) {
+      throw new Error('No signed URL generated');
     }
 
     // Store or update lead information
@@ -146,17 +156,9 @@ export async function POST(req: Request) {
 
     console.log('Lead information updated successfully');
 
-    // Return the PDF file
-    console.log('Sending PDF response...');
-    return new NextResponse(fileData, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="Final-Expense-Insurance-Guide.pdf"',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      },
-    });
+    // Return the signed URL
+    console.log('Sending signed URL response...');
+    return NextResponse.json({ url: signedUrl.signedUrl });
   } catch (error: any) {
     console.error('Error processing guide request:', error);
     return NextResponse.json(
