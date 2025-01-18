@@ -5,6 +5,7 @@ import React, { useState, FormEvent, useEffect, useRef } from 'react';
 interface Message {
   type: 'user' | 'assistant';
   content: string;
+  quickReplies?: string[];
 }
 
 interface ChatInterfaceProps {
@@ -24,7 +25,12 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
   const [messages, setMessages] = useState<Message[]>([
     {
       type: 'assistant',
-      content: `Hi ${userProfile.firstName}! I'm Grace. What made you consider Final Expense insurance?`
+      content: `Hi ${userProfile.firstName}! I'm Grace. What's your main reason for looking into Final Expense coverage?`,
+      quickReplies: [
+        'Protect my family',
+        'Plan for the future',
+        'Just exploring options'
+      ]
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
@@ -39,13 +45,16 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isLoading) return;
+    await handleMessage(inputMessage);
+  };
 
-    const userMessage = inputMessage.trim();
+  const handleMessage = async (message: string) => {
+    if (!message.trim() || isLoading) return;
+    
     setInputMessage('');
-    setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
+    setMessages(prev => [...prev, { type: 'user', content: message }]);
     setIsLoading(true);
 
     try {
@@ -53,9 +62,13 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: userMessage,
+          message,
           userProfile,
-          preQualAnswers
+          preQualAnswers,
+          messageHistory: messages.map(m => ({
+            role: m.type === 'user' ? 'user' : 'assistant',
+            content: m.content
+          }))
         })
       });
 
@@ -67,7 +80,10 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
         throw new Error(data.error);
       }
 
-      setMessages(prev => [...prev, { type: 'assistant', content: data.response }]);
+      setMessages(prev => [...prev, { 
+        type: 'assistant', 
+        content: data.response,
+      }]);
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, {
@@ -79,28 +95,43 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
     }
   };
 
+  const handleQuickReply = (reply: string) => {
+    if (isLoading) return;
+    handleMessage(reply);
+  };
+
   return (
     <div className="h-[600px] flex flex-col bg-white rounded-lg shadow-lg p-6">
       <div className="flex-1 overflow-y-auto mb-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            {message.type === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
-                <span className="text-blue-600 text-sm">GS</span>
-              </div>
-            )}
-            <div
-              className={`max-w-[80%] rounded-lg p-4 ${
+          <div key={index} className="space-y-2">
+            <div className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {message.type === 'assistant' && (
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                  <span className="text-blue-600 text-sm">G</span>
+                </div>
+              )}
+              <div className={`max-w-[80%] rounded-lg p-4 ${
                 message.type === 'user'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-800'
-              }`}
-            >
-              {message.content}
+              }`}>
+                {message.content}
+              </div>
             </div>
+            {message.type === 'assistant' && message.quickReplies && (
+              <div className="flex flex-wrap gap-2 ml-10">
+                {message.quickReplies.map((reply, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleQuickReply(reply)}
+                    className="bg-white border border-blue-600 text-blue-600 px-4 py-2 rounded-full hover:bg-blue-50 transition-colors text-sm"
+                  >
+                    {reply}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
         {isLoading && (
@@ -119,7 +150,7 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
         )}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSendMessage} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           type="text"
           value={inputMessage}

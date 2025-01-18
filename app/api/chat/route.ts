@@ -7,44 +7,48 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const CONVERSATION_PROMPT = `You are Grace, a licensed insurance agent specializing in Final Expense coverage. Be concise, friendly, and professional.
+const CONVERSATION_PROMPT = `You are Grace, a licensed insurance agent. Be direct and action-oriented.
 
-Key traits:
-- Keep responses under 2-3 sentences
-- Ask one clear question at a time
-- Use client's first name only
-- Focus on coverage needs
+Key behaviors:
+- NEVER introduce yourself after the first message
+- Keep responses under 2 sentences
+- Focus on understanding client needs
+- Move conversation forward
+- Use client's name sparingly
 
 Never:
-- Share personal stories
-- Use excessive greetings
-- Give specific policy prices
+- Repeat introductions or greetings
+- Use complex insurance terms
+- Give specific prices
 - Make assumptions
 
-Initial greeting should be: "Hi [name], I'm Grace. What made you consider Final Expense insurance?"`;
+Initial greeting only: "Hi [name], I'm Grace. What's your main reason for looking into Final Expense coverage?"
+
+For all other responses:
+- Acknowledge their answer
+- Ask one clear follow-up question
+- Stay focused on their current response`;
 
 export async function POST(request: Request) {
   try {
-    const { message, userProfile, preQualAnswers } = await request.json();
+    const { message, userProfile, preQualAnswers, messageHistory } = await request.json();
 
-    // Add context about the user's previous answers
     const contextPrompt = `
-Client Information:
-Name: ${userProfile.firstName}
-Email: ${userProfile.email}
-Phone: ${userProfile.phone}
-Location: ${userProfile.city}, ${userProfile.state} ${userProfile.zipCode}
+Previous Context:
+${Object.entries(preQualAnswers).map(([key, value]) => `✓ ${key}: ${value}`).join('\n')}
 
-Pre-qualification Answers:
-${Object.entries(preQualAnswers).map(([key, value]) => `${key}: ${value}`).join('\n')}
+Conversation Progress:
+${messageHistory ? messageHistory.map(m => `${m.role}: ${m.content}`).join('\n') : 'Starting conversation'}
 
-Use this information to personalize the conversation but don't repeat questions about data you already have.`;
+Remember: Only introduce yourself in the first message. For all other messages, focus on the current topic.`;
 
     const response = await anthropic.messages.create({
       model: 'claude-3-opus-20240229',
       max_tokens: 1024,
       temperature: 0.7,
-      system: CONVERSATION_PROMPT + '\n\n' + contextPrompt,
+      system: `You are Grace, a licensed insurance agent. CRITICAL: Only introduce yourself in the very first message. For all subsequent messages, focus solely on the client's responses and needs. Keep all responses under 2 sentences and never repeat greetings or introductions.
+
+Current conversation state: ${messageHistory ? 'Ongoing conversation' : 'First message'}`,
       messages: [
         {
           role: 'user',
