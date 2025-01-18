@@ -1,10 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 
-// Load environment variables from .env.local
+// Load environment variables
 dotenv.config({ path: '.env.local' });
 
 const BUCKET_NAME = 'guides';
+const FILE_NAME = 'final-expense-guide.pdf';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,7 +20,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function setupBucket() {
+async function setupStorage() {
   try {
     // Check if bucket exists
     console.log('Checking for existing bucket...');
@@ -48,19 +51,45 @@ async function setupBucket() {
       }
     }
 
-    // Update bucket policy
-    console.log('Setting bucket policy...');
-    const { error: policyError } = await supabase.storage.getBucket(BUCKET_NAME);
-    
-    if (policyError) {
-      throw new Error(`Failed to set bucket policy: ${policyError.message}`);
+    // Upload the PDF file
+    console.log('Uploading PDF file...');
+    const filePath = path.join(process.cwd(), 'public', FILE_NAME);
+    const fileBuffer = fs.readFileSync(filePath);
+
+    // Remove existing file if it exists
+    const { error: removeError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .remove([FILE_NAME]);
+
+    if (removeError) {
+      console.log('Note: No existing file found or error removing:', removeError.message);
     }
 
-    console.log('Bucket setup completed successfully!');
+    // Upload new file
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(FILE_NAME, fileBuffer, {
+        contentType: 'application/pdf',
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (uploadError) {
+      throw new Error(`Failed to upload file: ${uploadError.message}`);
+    }
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(FILE_NAME);
+
+    console.log('Setup completed successfully!');
+    console.log('Public URL:', publicUrl);
+
   } catch (error) {
     console.error('Error:', error);
     process.exit(1);
   }
 }
 
-setupBucket(); 
+setupStorage(); 
