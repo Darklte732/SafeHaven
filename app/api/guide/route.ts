@@ -76,32 +76,25 @@ export async function POST(req: Request) {
       throw new Error('Failed to store lead information');
     }
 
-    // Download the file directly from Supabase
-    console.log('Downloading file from storage...');
-    const { data: fileData, error: downloadError } = await supabase.storage
+    // Get a signed URL with download flag
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from(BUCKET_NAME)
-      .download(FILE_PATH);
+      .createSignedUrl(FILE_PATH, 3600, {
+        download: true,
+        transform: {
+          quality: 100
+        }
+      });
 
-    if (downloadError || !fileData) {
-      console.error('Failed to download file:', downloadError);
-      throw new Error('Failed to retrieve the guide');
+    if (signedUrlError || !signedUrlData?.signedUrl) {
+      console.error('Failed to generate signed URL:', signedUrlError);
+      throw new Error('Failed to generate download URL');
     }
 
-    // Convert blob to array buffer
-    const arrayBuffer = await fileData.arrayBuffer();
-
-    // Create response with proper headers
-    const headers = new Headers({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename="SafeHaven-Final-Expense-Guide.pdf"',
-      'Content-Length': arrayBuffer.byteLength.toString(),
-      'Cache-Control': 'no-cache'
-    });
-
-    // Return the file as a stream
-    return new NextResponse(arrayBuffer, {
-      status: 200,
-      headers
+    // Return the signed URL with download flag
+    return NextResponse.json({
+      url: signedUrlData.signedUrl,
+      fileName: 'SafeHaven-Final-Expense-Guide.pdf'
     });
 
   } catch (error: any) {

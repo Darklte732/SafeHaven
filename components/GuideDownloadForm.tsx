@@ -60,6 +60,38 @@ export function GuideDownloadForm() {
     return errors;
   };
 
+  const downloadFile = async (url: string, fileName: string) => {
+    try {
+      // Create an invisible iframe
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      // Create a form inside the iframe
+      const form = document.createElement('form');
+      form.method = 'GET';
+      form.action = url;
+
+      // Add the form to the iframe and submit it
+      if (iframe.contentWindow) {
+        iframe.contentWindow.document.body.appendChild(form);
+        form.submit();
+      }
+
+      // Clean up after a delay
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 2000);
+
+      setSuccessMessage('Guide download started!');
+      toast.success('Your guide is being downloaded!');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download guide. Please try again.');
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -86,32 +118,12 @@ export function GuideDownloadForm() {
         throw new Error(error.error || 'Failed to download guide');
       }
 
-      // Check if the response is JSON (error) or PDF (success)
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to download guide');
+      const data = await response.json();
+      if (!data.url) {
+        throw new Error('No download URL received');
       }
 
-      // Get the blob from the response
-      const blob = await response.blob();
-      
-      // Create object URL for the blob
-      const url = window.URL.createObjectURL(blob);
-      
-      // Create temporary link and trigger download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'SafeHaven-Final-Expense-Guide.pdf';
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      setSuccessMessage('Guide downloaded successfully!');
-      toast.success('Your guide is being downloaded!');
+      await downloadFile(data.url, data.fileName);
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
     } catch (error) {
       console.error('Error:', error);
