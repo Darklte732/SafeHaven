@@ -76,32 +76,16 @@ export async function POST(req: Request) {
       throw new Error('Failed to store lead information');
     }
 
-    // Download the file from Supabase
-    const { data: fileData, error: downloadError } = await supabase.storage
+    // Get a public URL for the file
+    const { data: { publicUrl } } = supabase.storage
       .from(BUCKET_NAME)
-      .download(FILE_PATH);
+      .getPublicUrl(FILE_PATH);
 
-    if (downloadError || !fileData) {
-      console.error('Failed to download file:', downloadError);
-      throw new Error('Failed to retrieve the guide');
-    }
-
-    // Convert blob to array buffer
-    const arrayBuffer = await fileData.arrayBuffer();
-
-    // Create response with proper headers for download
-    const headers = new Headers({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename="SafeHaven-Final-Expense-Guide.pdf"',
-      'Content-Length': arrayBuffer.byteLength.toString(),
-      'Cache-Control': 'no-cache',
-      'Access-Control-Expose-Headers': 'Content-Disposition'
-    });
-
-    // Return the file directly
-    return new NextResponse(arrayBuffer, {
-      status: 200,
-      headers
+    // Return the public URL
+    return NextResponse.json({
+      success: true,
+      url: publicUrl,
+      fileName: 'SafeHaven-Final-Expense-Guide.pdf'
     });
 
   } catch (error: any) {

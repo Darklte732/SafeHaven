@@ -82,38 +82,37 @@ export function GuideDownloadForm() {
       });
 
       if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to download guide');
-        }
-        throw new Error('Failed to download guide');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to download guide');
       }
 
-      // Get the blob from the response
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const data = await response.json();
+      if (!data.url) {
+        throw new Error('No download URL received');
+      }
 
-      // Get filename from Content-Disposition header or use default
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const fileName = contentDisposition
-        ? contentDisposition.split('filename=')[1].replace(/"/g, '')
-        : 'SafeHaven-Final-Expense-Guide.pdf';
+      // Create an iframe for download
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
 
-      // Create and click download link
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Set iframe source to the PDF URL
+      iframe.src = data.url;
 
-      // Clean up the blob URL
-      window.URL.revokeObjectURL(url);
+      // Remove iframe after a delay
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 2000);
 
-      setSuccessMessage('Guide downloaded successfully!');
+      setSuccessMessage('Guide download started!');
       toast.success('Your guide is being downloaded!');
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
+
+      // Fallback: Open in new tab if iframe doesn't trigger download
+      setTimeout(() => {
+        window.open(data.url, '_blank');
+      }, 1000);
+
     } catch (error) {
       console.error('Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to download guide';
