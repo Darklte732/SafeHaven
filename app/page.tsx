@@ -7,7 +7,7 @@ import { FeaturedIn } from '@/components/sections/featured-in';
 import { Testimonials } from '@/components/sections/testimonials';
 import { FAQ } from '@/components/sections/faq';
 import { CTA } from '@/components/sections/cta';
-import { Footer } from '@/components/layout/footer';
+import { Footer } from '@/components/layout/Footer';
 
 export default function HomePage() {
   return (
