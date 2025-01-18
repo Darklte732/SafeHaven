@@ -24,7 +24,7 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
   const [messages, setMessages] = useState<Message[]>([
     {
       type: 'assistant',
-      content: `Hi ${userProfile.firstName}! I'm Grace, a licensed Life Insurance Broker with access to over 38 top-rated carriers. Based on your answers, I can see you're interested in ${preQualAnswers.coverage} coverage and you're looking to get started ${preQualAnswers.timeline.toLowerCase()}. How are you doing today?`
+      content: `Hi ${userProfile.firstName}! I'm Grace. What made you consider Final Expense insurance?`
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
