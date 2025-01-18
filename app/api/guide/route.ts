@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import puppeteer from 'puppeteer-core';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -15,8 +12,10 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Phone validation regex
 const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
 
+const BUCKET_NAME = 'guides';
+const FILE_PATH = 'final-expense-guide.pdf';
+
 export async function POST(req: Request) {
-  let browser;
   try {
     console.log('Starting guide download process...');
     const { name, email, phone, zipCode } = await req.json();
@@ -76,52 +75,37 @@ export async function POST(req: Request) {
       }
     }
 
-    // Launch browser
-    console.log('Launching browser...');
-    const chromePath = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-    console.log('Using Chrome path:', chromePath);
+    // Check if bucket exists, create if not
+    console.log('Checking storage bucket...');
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const guidesBucket = buckets?.find(b => b.name === BUCKET_NAME);
     
-    browser = await puppeteer.launch({
-      executablePath: chromePath,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu'
-      ],
-      headless: true,
-    });
+    if (!guidesBucket) {
+      console.log('Creating storage bucket...');
+      const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
+        public: false
+      });
+      
+      if (createError) {
+        console.error('Bucket creation error:', createError);
+        throw new Error('Failed to create storage bucket');
+      }
+    }
 
-    console.log('Browser launched successfully');
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 1600 });
+    // Get the guide file from storage
+    console.log('Fetching guide from storage...');
+    const { data: fileData, error: fileError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .download(FILE_PATH);
 
-    // Read the HTML template
-    console.log('Reading HTML template...');
-    const templatePath = join(process.cwd(), 'templates', 'final-expense-guide.html');
-    console.log('Template path:', templatePath);
-    const template = readFileSync(templatePath, 'utf8');
+    if (fileError) {
+      console.error('File fetch error:', fileError);
+      throw new Error('Failed to fetch guide file');
+    }
 
-    // Set content and generate PDF
-    console.log('Setting page content...');
-    await page.setContent(template, {
-      waitUntil: 'networkidle0',
-      timeout: 30000,
-    });
-
-    console.log('Generating PDF...');
-    const pdf = await page.pdf({
-      format: 'a4',
-      printBackground: true,
-      margin: {
-        top: '20px',
-        right: '20px',
-        bottom: '20px',
-        left: '20px',
-      },
-    });
-
-    console.log('PDF generated successfully');
+    if (!fileData) {
+      throw new Error('Guide file not found');
+    }
 
     // Store or update lead information
     console.log('Updating lead information...');
@@ -162,18 +146,15 @@ export async function POST(req: Request) {
 
     console.log('Lead information updated successfully');
 
-    // Return the PDF directly for download
+    // Return the PDF file
     console.log('Sending PDF response...');
-    return new NextResponse(pdf, {
+    return new NextResponse(fileData, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="Final-Expense-Insurance-Guide.pdf"',
         'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Pragma': 'no-cache'
       },
     });
   } catch (error: any) {
@@ -182,15 +163,5 @@ export async function POST(req: Request) {
       { error: error.message || 'Failed to process guide request' },
       { status: 500 }
     );
-  } finally {
-    if (browser) {
-      try {
-        console.log('Closing browser...');
-        await browser.close();
-        console.log('Browser closed successfully');
-      } catch (error) {
-        console.error('Error closing browser:', error);
-      }
-    }
   }
 } 
