@@ -44,7 +44,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@types/node": "^20.17.12",
+    "@types/node": "^20.17.14",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "eslint": "^8.56.0",
@@ -52,6 +52,7 @@
     "next": "^15.1.4",
     "postcss": "^8.5.1",
     "tailwindcss-scrollbar": "^0.1.0",
-    "typescript": "^5.3.3"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
   }
 }
