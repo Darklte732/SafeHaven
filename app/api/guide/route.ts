@@ -20,29 +20,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save lead information' }, { status: 500 });
     }
 
-    // Get the file data directly
-    const { data: fileData, error: downloadError } = await supabase
+    // Generate a signed URL that's valid for 5 minutes
+    const { data: signedUrlData, error: signedUrlError } = await supabase
       .storage
       .from('guides')
-      .download('final-expense-guide.pdf');
+      .createSignedUrl('final-expense-guide.pdf', 300, {
+        download: true,
+        transform: {
+          quality: 100
+        }
+      });
 
-    if (downloadError || !fileData) {
-      console.error('Download error:', downloadError);
-      return NextResponse.json({ error: 'Failed to retrieve guide' }, { status: 500 });
+    if (signedUrlError || !signedUrlData) {
+      console.error('Signed URL error:', signedUrlError);
+      return NextResponse.json({ error: 'Failed to generate download link' }, { status: 500 });
     }
 
-    // Convert the file data to a Buffer if it's not already
-    const buffer = Buffer.from(await fileData.arrayBuffer());
-
-    // Create response with the PDF file
-    const response = new NextResponse(buffer);
-    
-    // Set appropriate headers for PDF download
-    response.headers.set('Content-Type', 'application/pdf');
-    response.headers.set('Content-Disposition', 'attachment; filename="SafeHaven-Final-Expense-Guide.pdf"');
-    response.headers.set('Content-Length', buffer.length.toString());
-    
-    return response;
+    return NextResponse.json({
+      success: true,
+      downloadUrl: signedUrlData.signedUrl
+    });
 
   } catch (error) {
     console.error('Server error:', error);
