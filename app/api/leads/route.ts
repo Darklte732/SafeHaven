@@ -1,18 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+// Debug logging for environment variables
+console.log('Environment variables check:');
+console.log('NEXT_PUBLIC_SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log('SUPABASE_SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
 // Validate environment variables
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
-}
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing environment variables:');
+  console.error('- NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'present' : 'missing');
+  console.error('- SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? 'present' : 'missing');
+  throw new Error('Missing required environment variables');
 }
 
 // Initialize Supabase client with service role key for admin access
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
   {
     auth: {
       autoRefreshToken: false,
@@ -20,6 +28,22 @@ const supabase = createClient(
     }
   }
 );
+
+// Test database connection
+async function testConnection() {
+  try {
+    const { data, error } = await supabase.from('quotes').select('count(*)').limit(1);
+    if (error) {
+      console.error('Connection test error:', error);
+      throw error;
+    }
+    console.log('Connection test successful');
+    return true;
+  } catch (error) {
+    console.error('Database connection test failed:', error);
+    return false;
+  }
+}
 
 // Define expected data structure
 interface LeadData {
@@ -38,6 +62,15 @@ interface LeadData {
 
 export async function POST(request: Request) {
   try {
+    // Test connection before proceeding
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      return NextResponse.json(
+        { error: 'Unable to connect to database. Please try again.' },
+        { status: 503 }
+      );
+    }
+
     // Log request start
     console.log('Processing lead submission...');
 
@@ -76,19 +109,6 @@ export async function POST(request: Request) {
     };
 
     console.log('Formatted lead data:', leadData);
-
-    // Verify database connection
-    const { data: connectionTest, error: connectionError } = await supabase
-      .from('quotes')
-      .select('count(*)')
-      .limit(1);
-
-    if (connectionError) {
-      console.error('Database connection error:', connectionError);
-      throw new Error('Database connection failed');
-    }
-
-    console.log('Database connection verified');
 
     // Insert into quotes table
     const { data: insertedLead, error: insertError } = await supabase
