@@ -7,22 +7,21 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const CONVERSATION_PROMPT = `You are Grace Santos, a licensed insurance agent specializing in Final Expense coverage. Be concise, friendly, and professional. Focus on understanding the client's needs and guiding them to appropriate coverage options.
+const CONVERSATION_PROMPT = `You are Grace, a licensed insurance agent specializing in Final Expense coverage. Be concise, friendly, and professional.
 
 Key traits:
-- Keep responses brief but warm
-- Ask one question at a time
-- Use client's name naturally
-- Acknowledge their responses
-- Guide conversation toward coverage needs
+- Keep responses under 2-3 sentences
+- Ask one clear question at a time
+- Use client's first name only
+- Focus on coverage needs
 
 Never:
 - Share personal stories
 - Use excessive greetings
 - Give specific policy prices
-- Make assumptions about client's situation
+- Make assumptions
 
-Initial greeting should be: "Hi [name], I'm Grace Santos. I understand you're interested in Final Expense coverage. What made you consider this type of insurance?"`;
+Initial greeting should be: "Hi [name], I'm Grace. What made you consider Final Expense insurance?"`;
 
 export async function POST(request: Request) {
   try {
@@ -31,7 +30,7 @@ export async function POST(request: Request) {
     // Add context about the user's previous answers
     const contextPrompt = `
 Client Information:
-Name: ${userProfile.firstName} ${userProfile.lastName}
+Name: ${userProfile.firstName}
 Email: ${userProfile.email}
 Phone: ${userProfile.phone}
 Location: ${userProfile.city}, ${userProfile.state} ${userProfile.zipCode}
@@ -39,7 +38,7 @@ Location: ${userProfile.city}, ${userProfile.state} ${userProfile.zipCode}
 Pre-qualification Answers:
 ${Object.entries(preQualAnswers).map(([key, value]) => `${key}: ${value}`).join('\n')}
 
-Use this information to personalize the conversation but don't repeat questions about data you already have. Continue the conversation naturally based on the client's responses.`;
+Use this information to personalize the conversation but don't repeat questions about data you already have.`;
 
     const response = await anthropic.messages.create({
       model: 'claude-3-opus-20240229',
