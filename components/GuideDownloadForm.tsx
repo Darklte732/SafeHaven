@@ -11,11 +11,13 @@ export function GuideDownloadForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [downloadUrl, setDownloadUrl] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setDownloadUrl('');
 
     const formData = new FormData(e.currentTarget);
     const data = {
@@ -40,15 +42,12 @@ export function GuideDownloadForm() {
         throw new Error(result.error || 'Failed to submit form');
       }
 
-      // Create a hidden link and click it to start the download
-      const link = document.createElement('a');
-      link.href = result.url;
-      link.download = result.fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
+      // Store the download URL
+      setDownloadUrl(result.url);
       setSuccess(true);
+      
+      // Try to start the download
+      window.open(result.url, '_blank');
       
       // Reset form
       e.currentTarget.reset();
@@ -56,6 +55,12 @@ export function GuideDownloadForm() {
       setError(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDownloadClick = () => {
+    if (downloadUrl) {
+      window.open(downloadUrl, '_blank');
     }
   };
 
@@ -103,24 +108,34 @@ export function GuideDownloadForm() {
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          'Download Free Guide'
-        )}
-      </button>
+      {!success ? (
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            'Download Free Guide'
+          )}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleDownloadClick}
+          className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Download Guide Again
+        </button>
+      )}
 
       {error && (
         <p className="text-red-600 text-sm mt-2">{error}</p>
       )}
 
       {success && (
-        <FormSuccess message="Thank you! Your guide is downloading now. If it doesn't start automatically, check your downloads folder or try clicking the button again." />
+        <FormSuccess message="Thank you! Your guide should be downloading now. If it doesn't start automatically, click the button above to try again." />
       )}
     </form>
   );

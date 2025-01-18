@@ -8,8 +8,8 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const { name, email, phone, zipCode } = data;
+    const formData = await request.json();
+    const { name, email, phone, zipCode } = formData;
 
     // Validate required fields
     if (!name || !email) {
@@ -42,14 +42,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get a signed URL for the guide
-    const { data: signedUrl, error: storageError } = await supabase
+    // Get a public URL for the guide
+    const { data: urlData } = supabase
       .storage
       .from('guides')
-      .createSignedUrl('final-expense-guide.pdf', 60);
+      .getPublicUrl('final-expense-guide.pdf');
 
-    if (storageError || !signedUrl) {
-      console.error('Storage error:', storageError);
+    if (!urlData.publicUrl) {
+      console.error('Failed to get public URL');
       return NextResponse.json(
         { error: 'Failed to generate download link' },
         { status: 500 }
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      url: signedUrl,
+      url: urlData.publicUrl,
       fileName: 'SafeHaven-Final-Expense-Guide.pdf',
     });
 
