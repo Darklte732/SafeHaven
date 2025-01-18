@@ -94,28 +94,65 @@ export default function GuidePage() {
                   Preview Guide
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl h-[90vh]">
+              <DialogContent className="max-w-3xl">
                 <DialogHeader>
-                  <DialogTitle>Final Expense Insurance Guide Preview</DialogTitle>
+                  <DialogTitle>Guide Preview</DialogTitle>
                   <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                     <span className="sr-only">Close</span>
                   </DialogClose>
                 </DialogHeader>
-                <div className="relative w-full h-full mt-4 bg-white rounded-lg overflow-hidden">
-                  {isPreviewLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white">
-                      <LoadingSpinner className="w-8 h-8 text-primary" />
+                
+                <div className="mt-6 space-y-6 text-gray-700">
+                  <div className="prose prose-blue max-w-none">
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">Understanding Final Expense Insurance</h2>
+                    
+                    <p className="mb-4">
+                      Final expense insurance, also known as burial insurance, is a specialized whole life insurance policy designed to cover end-of-life expenses. This guide will help you understand:
+                    </p>
+                    
+                    <ul className="list-disc pl-6 mb-4 space-y-2">
+                      <li>How final expense insurance differs from traditional life insurance</li>
+                      <li>Why it's an important part of financial planning</li>
+                      <li>Who should consider this type of coverage</li>
+                    </ul>
+
+                    <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                      <h3 className="text-lg font-semibold text-blue-900 mb-2">Key Benefits</h3>
+                      <ul className="list-none space-y-2">
+                        <li className="flex items-center">
+                          <svg className="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          Guaranteed acceptance options available
+                        </li>
+                        <li className="flex items-center">
+                          <svg className="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          Fixed premiums that never increase
+                        </li>
+                        <li className="flex items-center">
+                          <svg className="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          Coverage that never expires
+                        </li>
+                      </ul>
                     </div>
-                  )}
-                  <iframe 
-                    src="/templates/final-expense-guide.html" 
-                    className="w-full h-full border-0"
-                    title="Guide Preview"
-                    onLoad={() => setIsPreviewLoading(false)}
-                  />
+
+                    <div className="text-center mt-8 pt-6 border-t">
+                      <p className="text-sm text-gray-500 mb-4">This is just a preview. Download the full guide to learn more about:</p>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>Coverage amounts and policy options</li>
+                        <li>How to choose the right plan</li>
+                        <li>The application process</li>
+                        <li>And much more...</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
