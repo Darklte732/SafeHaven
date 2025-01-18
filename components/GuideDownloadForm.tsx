@@ -89,11 +89,9 @@ export function GuideDownloadForm() {
         throw new Error(errorData.error || 'Failed to process request');
       }
 
-      // Show success message
       setSuccessMessage('Thank you! Click the button below to download your guide.');
       toast.success('Form submitted successfully!');
       
-      // Reset form and show download button
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
       setShowDownloadButton(true);
 
@@ -115,6 +113,11 @@ export function GuideDownloadForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Download Your Free Guide</h2>
+        <p className="text-gray-600 mt-2">Get instant access to our comprehensive final expense insurance guide.</p>
+      </div>
+
       <div>
         <Label htmlFor="name">Full Name</Label>
         <Input

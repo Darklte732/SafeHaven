@@ -5,6 +5,7 @@ import { SafeImage } from '../components/ui/image'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import { BeneficiaryWorkbookSection } from '@/components/BeneficiaryWorkbookSection'
+import { GuideDownloadSection } from '@/components/GuideDownloadSection'
 
 // Lazy load components that are not needed immediately
 const FAQItem = lazy(() => import('../components/ui/faq-item').then(mod => ({ default: mod.FAQItem })))
