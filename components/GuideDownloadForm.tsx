@@ -26,9 +26,9 @@ export function GuideDownloadForm() {
       name: (formData.get('name') as string)?.trim(),
       email: (formData.get('email') as string)?.trim().toLowerCase(),
       phone: formData.get('phone') as string,
-      zipCode: formData.get('zipCode') as string,
-      lead_type: 'guide' as const,
-      status: 'completed' as const
+      zip: formData.get('zipCode') as string,
+      type: 'guide' as const,
+      status: 'new' as const
     };
 
     // Validate required fields

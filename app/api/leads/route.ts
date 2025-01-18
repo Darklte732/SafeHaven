@@ -26,24 +26,24 @@ export async function POST(request: Request) {
       );
     }
 
-    // Format data for database
+    // Format data to match the quotes table structure
     const leadData = {
-      full_name: data.name.trim(),
+      name: data.name.trim(),
       email: data.email.toLowerCase().trim(),
-      phone_number: data.phone?.trim() || null,
-      zip_code: data.zipCode?.trim() || null,
-      lead_type: data.lead_type,
-      status: data.status,
-      family_size: data.familyMembers || null,
+      phone: data.phone?.trim() || null,
+      zip: data.zipCode?.trim() || null,
+      type: data.lead_type || 'guide', // 'guide', 'workbook', or 'quote'
+      status: data.status || 'new',
+      family_members: data.familyMembers || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
     console.log('Formatted lead data:', leadData);
 
-    // Insert into leads table
+    // Insert into the quotes table (which stores all leads)
     const { data: insertedLead, error: insertError } = await supabase
-      .from('leads')
+      .from('quotes')  // Using the quotes table for all leads
       .insert([leadData])
       .select('*')
       .single();

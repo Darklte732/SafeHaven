@@ -25,10 +25,10 @@ export function BeneficiaryWorkbookForm() {
       name: (formData.get('name') as string)?.trim(),
       email: (formData.get('email') as string)?.trim().toLowerCase(),
       phone: formData.get('phone') as string,
-      zipCode: formData.get('zipCode') as string,
-      familyMembers: formData.get('familyMembers') as string,
-      lead_type: 'workbook' as const,
-      status: 'started' as const
+      zip: formData.get('zipCode') as string,
+      type: 'workbook' as const,
+      status: 'new' as const,
+      family_members: formData.get('familyMembers') as string
     };
 
     // Validate required fields
