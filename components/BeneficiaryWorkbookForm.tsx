@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 
 export function BeneficiaryWorkbookForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
 
@@ -17,11 +18,12 @@ export function BeneficiaryWorkbookForm() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccess(false);
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
+      name: (formData.get('name') as string)?.trim(),
+      email: (formData.get('email') as string)?.trim().toLowerCase(),
       phone: formData.get('phone') as string,
       zipCode: formData.get('zipCode') as string,
       familyMembers: formData.get('familyMembers') as string,
@@ -29,8 +31,15 @@ export function BeneficiaryWorkbookForm() {
       status: 'started' as const
     };
 
+    // Validate required fields
+    if (!data.name || !data.email) {
+      setError('Name and email are required');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Save initial lead data
+      // Save lead data
       const response = await fetch('/api/leads', {
         method: 'POST',
         headers: {
@@ -39,15 +48,24 @@ export function BeneficiaryWorkbookForm() {
         body: JSON.stringify(data)
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.error || 'Failed to save information');
+        throw new Error(result.error || 'Failed to submit form');
       }
 
-      // Redirect to the workbook page
-      router.push('/workbook');
+      setSuccess(true);
+      
+      // Reset form
+      e.currentTarget.reset();
+      
+      // Redirect to workbook page after short delay
+      setTimeout(() => {
+        router.push('/workbook');
+      }, 1500);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Form submission error:', err);
+      setError(err.message || 'Failed to save your information. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -122,6 +140,10 @@ export function BeneficiaryWorkbookForm() {
 
       {error && (
         <p className="text-red-600 text-sm mt-2">{error}</p>
+      )}
+
+      {success && (
+        <FormSuccess message="Thank you! You'll be redirected to the workbook page in a moment..." />
       )}
     </form>
   );

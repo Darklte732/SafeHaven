@@ -34,6 +34,7 @@
     "clsx": "^2.1.1",
     "critters": "^0.0.25",
     "dotenv": "^16.4.7",
+    "googleapis": "^144.0.0",
     "html-pdf-node": "^1.0.8",
     "langchain": "^0.3.11",
     "lucide-react": "^0.446.0",

@@ -7,7 +7,8 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { PhoneInput } from '@/components/PhoneInput';
 import { Label } from '@/components/Label';
 
-const GUIDE_DOWNLOAD_URL = 'https://drive.google.com/file/d/1cPJgM4D4HR_eQLIF8miQA6uTHDzN0NyN/view?usp=drive_link';
+// Updated guide URL from your Google Drive
+const GUIDE_DOWNLOAD_URL = 'https://drive.google.com/file/d/1PKbG_YgKL8l9NJlmo1JQVAhKs0toA5yy/view?usp=sharing';
 
 export function GuideDownloadForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,16 +19,24 @@ export function GuideDownloadForm() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccess(false);
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
+      name: (formData.get('name') as string)?.trim(),
+      email: (formData.get('email') as string)?.trim().toLowerCase(),
       phone: formData.get('phone') as string,
       zipCode: formData.get('zipCode') as string,
       lead_type: 'guide' as const,
       status: 'completed' as const
     };
+
+    // Validate required fields
+    if (!data.name || !data.email) {
+      setError('Name and email are required');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Save lead data
@@ -42,6 +51,15 @@ export function GuideDownloadForm() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 409) {
+          // Email already exists - still allow download but show different message
+          setSuccess(true);
+          window.open(GUIDE_DOWNLOAD_URL, '_blank');
+          e.currentTarget.reset();
+          setError('You have already downloaded the guide. Opening it again...');
+          return;
+        }
         throw new Error(result.error || 'Failed to submit form');
       }
 
@@ -52,7 +70,8 @@ export function GuideDownloadForm() {
       // Reset form
       e.currentTarget.reset();
     } catch (err: any) {
-      setError(err.message);
+      console.error('Form submission error:', err);
+      setError(err.message || 'Failed to save your information. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -131,10 +150,12 @@ export function GuideDownloadForm() {
       )}
 
       {error && (
-        <p className="text-red-600 text-sm mt-2">{error}</p>
+        <p className={`text-sm mt-2 ${error.includes('already downloaded') ? 'text-blue-600' : 'text-red-600'}`}>
+          {error}
+        </p>
       )}
 
-      {success && (
+      {success && !error && (
         <FormSuccess message="Thank you! Your guide should be opening in a new tab. If it doesn't open automatically, click the button above to download it again." />
       )}
     </form>

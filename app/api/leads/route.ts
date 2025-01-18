@@ -1,24 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-interface LeadData {
-  name: string;
-  email: string;
-  phone?: string | null;
-  zipCode?: string | null;
-  lead_type: 'guide' | 'workbook';
-  status: 'started' | 'completed';
-  familyMembers?: string | null;
-}
+// Initialize Supabase client with service role key for admin access
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 export async function POST(request: Request) {
   try {
-    const data: LeadData = await request.json();
+    const data = await request.json();
+    console.log('Received lead data:', data);
 
     // Validate required fields
     if (!data.name || !data.email) {
@@ -28,12 +26,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Format data to match Supabase schema
+    // Format data for database
     const leadData = {
-      full_name: data.name,
-      email: data.email,
-      phone_number: data.phone || null,
-      zip_code: data.zipCode || null,
+      full_name: data.name.trim(),
+      email: data.email.toLowerCase().trim(),
+      phone_number: data.phone?.trim() || null,
+      zip_code: data.zipCode?.trim() || null,
       lead_type: data.lead_type,
       status: data.status,
       family_size: data.familyMembers || null,
@@ -41,22 +39,38 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString()
     };
 
-    // Save lead data to database
-    const { error: dbError } = await supabase
-      .from('leads')
-      .insert([leadData]);
+    console.log('Formatted lead data:', leadData);
 
-    if (dbError) {
-      console.error('Database error:', dbError);
+    // Insert into leads table
+    const { data: insertedLead, error: insertError } = await supabase
+      .from('leads')
+      .insert([leadData])
+      .select('*')
+      .single();
+
+    if (insertError) {
+      console.error('Database insert error:', insertError);
+      
+      // Check for duplicate email
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { error: 'This email has already been registered' },
+          { status: 409 }
+        );
+      }
+
       return NextResponse.json(
         { error: 'Failed to save lead information' },
         { status: 500 }
       );
     }
 
+    console.log('Successfully saved lead:', insertedLead);
+
     return NextResponse.json({
       success: true,
       message: 'Lead information saved successfully',
+      data: insertedLead
     });
 
   } catch (error) {
