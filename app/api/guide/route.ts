@@ -7,11 +7,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request: Request) {
   try {
-    // 1. Get form data
     const data = await request.json();
     const { name, email, phone, zipCode } = data;
 
-    // 2. Save lead data
+    // Save lead data
     const { error: dbError } = await supabase
       .from('leads')
       .insert([{ 
@@ -28,24 +27,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save lead information' }, { status: 500 });
     }
 
-    // 3. Get a fresh download URL
-    const { data: fileData, error: downloadError } = await supabase
-      .storage
-      .from('guides')
-      .createSignedUrl('final-expense-guide.pdf', 60, {
-        download: true
-      });
-
-    if (downloadError || !fileData) {
-      console.error('Download error:', downloadError);
-      return NextResponse.json({ error: 'Failed to generate download link' }, { status: 500 });
-    }
-
-    // 4. Return the download URL
-    return NextResponse.json({
-      success: true,
-      downloadUrl: fileData.signedUrl
-    });
+    return NextResponse.json({ success: true });
 
   } catch (error) {
     console.error('Server error:', error);

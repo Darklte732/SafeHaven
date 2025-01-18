@@ -35,6 +35,7 @@ export function GuideDownloadForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showDownloadButton, setShowDownloadButton] = useState(false);
 
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {};
@@ -60,31 +61,12 @@ export function GuideDownloadForm() {
     return errors;
   };
 
-  const downloadFile = (url: string) => {
-    // Create an invisible iframe
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    // Navigate iframe to download URL
-    if (iframe.contentWindow) {
-      iframe.src = url;
-    }
-
-    // Remove iframe after a short delay
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-      
-      // Fallback: If download hasn't started, open in new tab
-      window.open(url, '_blank');
-    }, 1000);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setSuccessMessage('');
     setErrors({});
+    setShowDownloadButton(false);
     
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
@@ -107,21 +89,13 @@ export function GuideDownloadForm() {
         throw new Error(errorData.error || 'Failed to process request');
       }
 
-      const data = await response.json();
-      
-      if (!data.success || !data.downloadUrl) {
-        throw new Error('Failed to get download URL');
-      }
-
       // Show success message
-      setSuccessMessage('Thank you! Your guide is being downloaded.');
+      setSuccessMessage('Thank you! Click the button below to download your guide.');
       toast.success('Form submitted successfully!');
       
-      // Reset form
+      // Reset form and show download button
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
-
-      // Start download
-      downloadFile(data.downloadUrl);
+      setShowDownloadButton(true);
 
     } catch (error) {
       console.error('Error:', error);
@@ -196,16 +170,28 @@ export function GuideDownloadForm() {
         <FormError message={errors.zipCode} />
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <LoadingSpinner className="mr-2" />
-            Processing...
-          </>
-        ) : (
-          'Download Free Guide'
-        )}
-      </Button>
+      {!showDownloadButton ? (
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <LoadingSpinner className="mr-2" />
+              Processing...
+            </>
+          ) : (
+            'Submit Form'
+          )}
+        </Button>
+      ) : (
+        <a 
+          href="/final-expense-guide.pdf" 
+          download="SafeHaven-Final-Expense-Guide.pdf"
+          className="block"
+        >
+          <Button type="button" className="w-full bg-green-600 hover:bg-green-700">
+            Download Free Guide
+          </Button>
+        </a>
+      )}
 
       <FormSuccess message={successMessage} />
     </form>
