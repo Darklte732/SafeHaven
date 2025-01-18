@@ -5,64 +5,45 @@ import { GuideDownloadButton } from './GuideDownloadButton';
 
 export function GuideDownloadSection() {
   return (
-    <section className="py-16 bg-gradient-to-br from-blue-50 to-white">
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <h2 className="text-4xl font-bold text-gray-900">
-              Free Guide: Understanding Final Expense Insurance
-            </h2>
-            
-            <p className="text-lg text-gray-700">
-              Download our comprehensive guide to learn everything you need to know about final expense insurance 
-              and how it can protect your family's financial future.
-            </p>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800">
-                Inside the Guide:
-              </h3>
-              <ul className="space-y-3">
-                {[
-                  'How final expense insurance works',
-                  'Coverage options and costs',
-                  'Eligibility requirements',
-                  'Claims process explained',
-                  'Tips for choosing the right policy',
-                  'Common questions answered',
-                ].map((item, index) => (
-                  <li key={index} className="flex items-start">
-                    <svg
-                      className="h-6 w-6 text-green-500 mr-2 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <span className="text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="bg-blue-100 p-4 rounded-lg">
-              <p className="text-blue-800 font-medium">
-                "This guide helped me understand exactly what coverage I needed and how to get it. Highly recommended!" - John D.
-              </p>
-            </div>
+    <section className="bg-gray-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-3xl font-bold mb-4">
+          Download Your Free Final Expense Insurance Guide
+        </h2>
+        <p className="text-gray-600 mb-8">
+          Learn everything you need to know about final expense insurance and how it can protect your loved ones.
+        </p>
+        
+        <div className="bg-white p-8 rounded-lg shadow-md">
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold mb-4">What's Inside:</h3>
+            <ul className="space-y-2 text-left max-w-md mx-auto mb-6">
+              <li className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                Understanding Final Expense Insurance
+              </li>
+              <li className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                Coverage Options and Costs
+              </li>
+              <li className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                How to Choose the Right Policy
+              </li>
+              <li className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                Tips for Getting the Best Rates
+              </li>
+            </ul>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 bg-blue-200 rounded-lg transform -rotate-3"></div>
-            <div className="relative bg-white p-6 rounded-lg shadow-lg">
-              <GuideDownloadButton />
-            </div>
+          <div className="max-w-sm mx-auto">
+            <GuideDownloadButton />
+          </div>
+
+          <div className="mt-8 text-gray-600 italic">
+            "This guide helped me understand exactly what I needed to protect my family. Highly recommended!"
+            <div className="mt-2 font-semibold">- Sarah M.</div>
           </div>
         </div>
       </div>
