@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FormInput } from './FormInput';
-import { FormSuccess } from './FormSuccess';
-import { LoadingSpinner } from './LoadingSpinner';
-import { PhoneInput } from './PhoneInput';
-import { Label } from './Label';
+import { FormInput } from '@/components/FormInput';
+import { FormSuccess } from '@/components/FormSuccess';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { PhoneInput } from '@/components/PhoneInput';
+import { Label } from '@/components/Label';
 import { useRouter } from 'next/navigation';
 
 export function BeneficiaryWorkbookForm() {
@@ -20,11 +20,13 @@ export function BeneficiaryWorkbookForm() {
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      phone: formData.get('phone'),
-      zipCode: formData.get('zipCode'),
-      familyMembers: formData.get('familyMembers')
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      zipCode: formData.get('zipCode') as string,
+      familyMembers: formData.get('familyMembers') as string,
+      lead_type: 'workbook' as const,
+      status: 'started' as const
     };
 
     try {
@@ -34,11 +36,7 @@ export function BeneficiaryWorkbookForm() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          ...data,
-          lead_type: 'workbook',
-          status: 'started'
-        })
+        body: JSON.stringify(data)
       });
 
       if (!response.ok) {

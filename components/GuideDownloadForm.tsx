@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FormInput } from './FormInput';
-import { FormSuccess } from './FormSuccess';
-import { LoadingSpinner } from './LoadingSpinner';
-import { PhoneInput } from './PhoneInput';
-import { Label } from './Label';
+import { FormInput } from '@/components/FormInput';
+import { FormSuccess } from '@/components/FormSuccess';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { PhoneInput } from '@/components/PhoneInput';
+import { Label } from '@/components/Label';
 
 const GUIDE_DOWNLOAD_URL = 'https://drive.google.com/file/d/1cPJgM4D4HR_eQLIF8miQA6uTHDzN0NyN/view?usp=drive_link';
 
@@ -21,10 +21,12 @@ export function GuideDownloadForm() {
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      phone: formData.get('phone'),
-      zipCode: formData.get('zipCode')
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      zipCode: formData.get('zipCode') as string,
+      lead_type: 'guide' as const,
+      status: 'completed' as const
     };
 
     try {
@@ -34,11 +36,7 @@ export function GuideDownloadForm() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          ...data,
-          lead_type: 'guide',
-          status: 'completed'
-        })
+        body: JSON.stringify(data)
       });
 
       const result = await response.json();

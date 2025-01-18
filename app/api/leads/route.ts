@@ -6,33 +6,45 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+interface LeadData {
+  name: string;
+  email: string;
+  phone?: string | null;
+  zipCode?: string | null;
+  lead_type: 'guide' | 'workbook';
+  status: 'started' | 'completed';
+  familyMembers?: string | null;
+}
+
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const { name, email, phone, zipCode, lead_type, status } = data;
+    const data: LeadData = await request.json();
 
     // Validate required fields
-    if (!name || !email) {
+    if (!data.name || !data.email) {
       return NextResponse.json(
         { error: 'Name and email are required' },
         { status: 400 }
       );
     }
 
+    // Format data to match Supabase schema
+    const leadData = {
+      full_name: data.name,
+      email: data.email,
+      phone_number: data.phone || null,
+      zip_code: data.zipCode || null,
+      lead_type: data.lead_type,
+      status: data.status,
+      family_size: data.familyMembers || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
     // Save lead data to database
     const { error: dbError } = await supabase
       .from('leads')
-      .insert([
-        {
-          name,
-          email,
-          phone: phone || null,
-          zip_code: zipCode || null,
-          lead_type,
-          status,
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      .insert([leadData]);
 
     if (dbError) {
       console.error('Database error:', dbError);
