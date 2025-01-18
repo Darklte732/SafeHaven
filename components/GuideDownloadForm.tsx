@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { FormError } from '@/components/ui/form-error';
 import { FormSuccess } from '@/components/ui/form-success';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import Link from 'next/link';
 
 interface FormData {
   name: string;
@@ -36,7 +35,6 @@ export function GuideDownloadForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {};
@@ -67,7 +65,6 @@ export function GuideDownloadForm() {
     setIsLoading(true);
     setSuccessMessage('');
     setErrors({});
-    setDownloadUrl(null);
     
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
@@ -77,23 +74,29 @@ export function GuideDownloadForm() {
     }
 
     try {
-      const response = await fetch('/api/guide', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      // Create a hidden form for file download
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/api/guide';
+      form.style.display = 'none';
+
+      // Add form data
+      Object.entries(formData).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to process request');
-      }
+      // Add form to body and submit
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
 
-      const data = await response.json();
-      
-      // Show success message and set download URL
-      setSuccessMessage('Thank you! Click the button below to download your guide.');
+      // Show success message
+      setSuccessMessage('Thank you! Your guide is being downloaded.');
       toast.success('Form submitted successfully!');
-      setDownloadUrl(data.downloadUrl);
       
       // Reset form
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
@@ -171,24 +174,16 @@ export function GuideDownloadForm() {
         <FormError message={errors.zipCode} />
       </div>
 
-      {!downloadUrl ? (
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <LoadingSpinner className="mr-2" />
-              Processing...
-            </>
-          ) : (
-            'Submit Form'
-          )}
-        </Button>
-      ) : (
-        <Link href={downloadUrl} target="_blank" rel="noopener noreferrer">
-          <Button type="button" className="w-full bg-green-600 hover:bg-green-700">
-            Download Free Guide
-          </Button>
-        </Link>
-      )}
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? (
+          <>
+            <LoadingSpinner className="mr-2" />
+            Processing...
+          </>
+        ) : (
+          'Download Free Guide'
+        )}
+      </Button>
 
       <FormSuccess message={successMessage} />
     </form>

@@ -20,21 +20,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save lead information' }, { status: 500 });
     }
 
-    // Get signed URL for the guide
-    const { data: signedUrl, error: storageError } = await supabase
+    // Get the file data directly
+    const { data: fileData, error: downloadError } = await supabase
       .storage
       .from('guides')
-      .createSignedUrl('final-expense-guide.pdf', 300); // URL valid for 5 minutes
+      .download('final-expense-guide.pdf');
 
-    if (storageError || !signedUrl) {
-      console.error('Storage error:', storageError);
-      return NextResponse.json({ error: 'Failed to generate download link' }, { status: 500 });
+    if (downloadError || !fileData) {
+      console.error('Download error:', downloadError);
+      return NextResponse.json({ error: 'Failed to retrieve guide' }, { status: 500 });
     }
 
-    return NextResponse.json({
-      success: true,
-      downloadUrl: signedUrl.signedUrl
-    });
+    // Create response with the PDF file
+    const response = new NextResponse(fileData);
+    
+    // Set appropriate headers for PDF download
+    response.headers.set('Content-Type', 'application/pdf');
+    response.headers.set('Content-Disposition', 'attachment; filename="SafeHaven-Final-Expense-Guide.pdf"');
+    response.headers.set('Content-Length', fileData.size.toString());
+    
+    return response;
 
   } catch (error) {
     console.error('Server error:', error);
