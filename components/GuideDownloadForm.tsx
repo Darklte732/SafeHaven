@@ -60,23 +60,6 @@ export function GuideDownloadForm() {
     return errors;
   };
 
-  const initiateDownload = (url: string) => {
-    // Create an invisible iframe for download
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    
-    // Set iframe source to trigger download
-    if (iframe.contentWindow) {
-      iframe.src = url;
-    }
-    
-    // Remove iframe after a delay
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-    }, 2000);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -104,11 +87,24 @@ export function GuideDownloadForm() {
         throw new Error(errorData.error || 'Failed to download guide');
       }
 
-      const data = await response.json();
+      // Get the blob from the response
+      const blob = await response.blob();
       
-      if (!data.success || !data.downloadUrl) {
-        throw new Error('Failed to get download URL');
-      }
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'SafeHaven-Final-Expense-Guide.pdf'; // Set the file name
+      document.body.appendChild(link);
+      
+      // Click the link to trigger the download
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       // Show success message
       setSuccessMessage('Thank you! Your guide is being downloaded.');
@@ -116,20 +112,6 @@ export function GuideDownloadForm() {
       
       // Reset form
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
-
-      // Try multiple download methods
-      // Method 1: Direct window.location
-      window.location.href = data.downloadUrl;
-      
-      // Method 2: After a short delay, try iframe
-      setTimeout(() => {
-        initiateDownload(data.downloadUrl);
-      }, 1000);
-      
-      // Method 3: After another delay, try window.open
-      setTimeout(() => {
-        window.open(data.downloadUrl, '_blank');
-      }, 2000);
 
     } catch (error) {
       console.error('Error:', error);

@@ -5,9 +5,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Make sure the bucket is public and the file has public access
-const GUIDE_URL = `${supabaseUrl}/storage/v1/object/public/guides/final-expense-guide.pdf`;
-
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -23,11 +20,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save lead information' }, { status: 500 });
     }
 
-    // Return the direct public URL
-    return NextResponse.json({
-      success: true,
-      downloadUrl: GUIDE_URL
-    });
+    // Get the file data directly
+    const { data: fileData, error: downloadError } = await supabase
+      .storage
+      .from('guides')
+      .download('SafeHaven-Final-Expense-Guide.pdf');
+
+    if (downloadError || !fileData) {
+      console.error('Download error:', downloadError);
+      return NextResponse.json({ error: 'Failed to retrieve guide' }, { status: 500 });
+    }
+
+    // Convert the file data to a Buffer
+    const buffer = await fileData.arrayBuffer();
+
+    // Create response with the PDF file
+    const response = new NextResponse(buffer);
+    
+    // Set appropriate headers for PDF download
+    response.headers.set('Content-Type', 'application/pdf');
+    response.headers.set('Content-Disposition', 'attachment; filename="SafeHaven-Final-Expense-Guide.pdf"');
+    response.headers.set('Content-Length', buffer.byteLength.toString());
+    response.headers.set('Cache-Control', 'no-cache');
+    
+    return response;
 
   } catch (error) {
     console.error('Server error:', error);
