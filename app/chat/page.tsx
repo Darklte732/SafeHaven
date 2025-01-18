@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import ChatInterface from '@/components/ChatInterface';
 
 const preQualifyQuestions = [
   {
@@ -34,7 +35,7 @@ export default function ChatPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [showOptIn, setShowOptIn] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [optInData, setOptInData] = useState({
     firstName: '',
     lastName: '',
@@ -47,17 +48,6 @@ export default function ChatPage() {
     consentToContact: false,
     consentToHIPAA: false
   });
-  const [messages, setMessages] = useState([
-    {
-      type: 'assistant',
-      content: '👋 Hi! I\'m your SafeHaven Insurance assistant. I can help you with:'
-    },
-    {
-      type: 'assistant',
-      content: '💰 Get Your Free Quote Now'
-    }
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
 
   const handleAnswer = (answer: string) => {
     setAnswers(prev => ({ ...prev, [preQualifyQuestions[currentStep].id]: answer }));
@@ -68,27 +58,10 @@ export default function ChatPage() {
     }
   };
 
-  const handleOptInSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleOptInSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Save opt-in data to database here
     setShowChat(true);
-  };
-
-  const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!inputMessage.trim()) return;
-
-    // Add user message
-    setMessages(prev => [...prev, { type: 'user', content: inputMessage }]);
-    setInputMessage('');
-
-    // Simulate AI response
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        type: 'assistant',
-        content: 'I understand you\'re interested in learning more. Let me help you find the best coverage options for your needs.'
-      }]);
-    }, 1000);
   };
 
   return (
@@ -105,41 +78,7 @@ export default function ChatPage() {
 
         <div className="bg-white rounded-lg shadow-lg p-8">
           {showChat ? (
-            <div className="h-[600px] flex flex-col">
-              <div className="flex-1 overflow-y-auto mb-4 space-y-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-4 ${
-                        message.type === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <form onSubmit={handleSendMessage} className="flex gap-2">
-                <input
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Send
-                </button>
-              </form>
-            </div>
+            <ChatInterface userProfile={optInData} preQualAnswers={answers} />
           ) : !showOptIn ? (
             <div>
               <div className="mb-8">
