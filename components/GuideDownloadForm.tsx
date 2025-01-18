@@ -7,17 +7,17 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { PhoneInput } from './PhoneInput';
 import { Label } from './Label';
 
+const GUIDE_DOWNLOAD_URL = 'https://drive.google.com/file/d/1cPJgM4D4HR_eQLIF8miQA6uTHDzN0NyN/view?usp=drive_link';
+
 export function GuideDownloadForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [downloadUrl, setDownloadUrl] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    setDownloadUrl('');
 
     const formData = new FormData(e.currentTarget);
     const data = {
@@ -28,12 +28,17 @@ export function GuideDownloadForm() {
     };
 
     try {
-      const response = await fetch('/api/guide', {
+      // Save lead data
+      const response = await fetch('/api/leads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          ...data,
+          lead_type: 'guide',
+          status: 'completed'
+        })
       });
 
       const result = await response.json();
@@ -42,12 +47,9 @@ export function GuideDownloadForm() {
         throw new Error(result.error || 'Failed to submit form');
       }
 
-      // Store the download URL
-      setDownloadUrl(result.url);
+      // Open the guide in a new tab
+      window.open(GUIDE_DOWNLOAD_URL, '_blank');
       setSuccess(true);
-      
-      // Try to start the download
-      window.open(result.url, '_blank');
       
       // Reset form
       e.currentTarget.reset();
@@ -55,12 +57,6 @@ export function GuideDownloadForm() {
       setError(err.message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleDownloadClick = () => {
-    if (downloadUrl) {
-      window.open(downloadUrl, '_blank');
     }
   };
 
@@ -121,13 +117,19 @@ export function GuideDownloadForm() {
           )}
         </button>
       ) : (
-        <button
-          type="button"
-          onClick={handleDownloadClick}
-          className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+        <a
+          href={GUIDE_DOWNLOAD_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full"
         >
-          Download Guide Again
-        </button>
+          <button
+            type="button"
+            className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Download Guide Again
+          </button>
+        </a>
       )}
 
       {error && (
@@ -135,7 +137,7 @@ export function GuideDownloadForm() {
       )}
 
       {success && (
-        <FormSuccess message="Thank you! Your guide should be downloading now. If it doesn't start automatically, click the button above to try again." />
+        <FormSuccess message="Thank you! Your guide should be opening in a new tab. If it doesn't open automatically, click the button above to download it again." />
       )}
     </form>
   );
