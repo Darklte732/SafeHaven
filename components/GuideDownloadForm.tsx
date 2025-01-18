@@ -91,27 +91,28 @@ export function GuideDownloadForm() {
         throw new Error('No download URL received');
       }
 
-      // Create an iframe for download
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
+      // Create a hidden download link
+      const downloadLink = document.createElement('a');
+      downloadLink.href = data.url;
+      downloadLink.target = '_blank';
+      downloadLink.download = data.fileName || 'SafeHaven-Final-Expense-Guide.pdf';
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
 
-      // Set iframe source to the PDF URL
-      iframe.src = data.url;
+      // Try direct download first
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
 
-      // Remove iframe after a delay
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 2000);
-
+      // Show success message
       setSuccessMessage('Guide download started!');
       toast.success('Your guide is being downloaded!');
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
 
-      // Fallback: Open in new tab if iframe doesn't trigger download
-      setTimeout(() => {
+      // Fallback: If download doesn't start, open in new tab
+      const isDownloading = confirm('Click OK if the download has not started. The guide will open in a new tab.');
+      if (isDownloading) {
         window.open(data.url, '_blank');
-      }, 1000);
+      }
 
     } catch (error) {
       console.error('Error:', error);
