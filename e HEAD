@@ -1,0 +1,71 @@
+[33m1ad6dad[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Final integration: Complete lead magnet system with all sections
+[33mc8ef6a7[m Add Toaster component for notifications
+[33m6e1101e[m Restore family photo in hero section
+[33m275fad3[m Add missing sections: Stats, Featured In, Testimonials, FAQ, CTA, Footer, and How It Works
+[33m1a7df55[m Update UI to match design and redirect Learn More to guide page
+[33mc5b34de[m Restore old UI and move guide download to guide page only
+[33m8a84ee9[m Add navigation bar and update hero section links
+[33m29fe8f4[m Add UI components: LoadingSpinner, FormError, FormSuccess, and enhanced Card
+[33m90cb3c8[m Add theme configuration and CSS variables
+[33mce0b9b8[m Add phone input and label components
+[33m856b260[m Fix: Add globals.css and use client directive
+[33me04b7ca[m Fix: Resolve app and pages router conflicts, standardize on App Router
+[33m5dab4b9[m Initial commit: Lead magnet system implementation
+[33mb3d313c[m Fix chat message repetition and improve conversation flow
+[33m1e9c6e3[m Update chat sequence with improved state management and validation
+[33m8a12197[m Fix chat message repetition and maintain conversation state
+[33mabeb4bc[m Update chat flow to ask questions sequentially
+[33md1f9745[m Add Supabase integration and enhanced lead capture
+[33mc50602e[m Add health questions and carrier eligibility logic
+[33ma9ed54e[m Improve chat AI response handling for user information
+[33mee73cc5[m Update chat interface with improved sales focus and opt-in flow
+[33mf034e93[m Update chat interface with improved quick options and follow-up buttons
+[33m358e329[m Add video section with arrows to chat page
+[33m3f5d6f6[m fix: Move dynamic import to client component
+[33m01480e4[m feat: Add conditional voice chat widget rendering
+[33m352d2b8[m fix: Improve submit button visibility with stronger styling
+[33m5f00efc[m fix: Update chat route with proper async functions and type handling
+[33m0d540fe[m fix: Add fixed submit button for mobile form view
+[33mea66a5c[m fix: Update chat interface with improved submit button visibility and positioning
+[33mfd9eee5[m fix: Add fixed submit button for mobile form view
+[33m517b520[m feat: Add loading animation with countdown timer for quote processing
+[33m274ccbc[m feat: Add scrollable chat interface with auto-scroll
+[33m6822765[m fix: Update quote process to use HTTP polling and prevent AI from fabricating quotes
+[33m7908657[m feat: Add loading state and countdown information
+[33m46dafd6[m fix: Improve webhook error handling and logging
+[33m999a019[m feat: Update phone format and add quote retrieval webhook
+[33m3f4f4a5[m feat: Add phone number collection to quote process
+[33ma153e57[m fix: Update data format to match required webhook format
+[33m281682d[m fix: Update height formatting to use two-digit format
+[33m0fcaea7[m feat: Add multi-tier quotes, carrier recommendations, and loading state
+[33m9820863[m feat: Add legal opt-in requirement before quote process
+[33m7c10121[m feat: Improve AI prompts to ask one question at a time
+[33m1abd7d6[m feat: Add quote processing with information extraction
+[33m40b8bfa[m feat: Improve AI responses with more professional guidelines
+[33m5a238c2[m feat: Switch to Claude 3 Sonnet model
+[33m65e7f49[m feat: Upgrade to Claude 3 Opus model
+[33m436f726[m fix: Improve chat error handling and add debug logs
+[33mf31b691[m refactor: Simplify chat implementation without streaming
+[33me6aaadb[m fix: Update module imports and type declarations
+[33m5233678[m feat: Update chat implementation with Vercel AI SDK and streaming
+[33m202dc57[m fix: Enhance chat API with detailed error handling and logging
+[33mb30db10[m fix: Update chat API route with proper CORS handling
+[33m7a255b6[m feat: Implement functional chat interface with Claude integration
+[33m5255ab7[m feat: Add floating animation to hero image and carrier logos
+[33m7e40380[m fix: Update landing page visibility and styling
+[33md320aec[m fix: Update FAQ string formatting
+[33m6fe607e[m fix: Update chat interface and styles
+[33md7afc71[m fix: Update button styles to use correct Tailwind primary color classes
+[33m7e1b687[m fix: Update text-primary class to use correct Tailwind color
+[33m10c0b66[m fix: Update chat API with CORS and improved error handling
+[33m0d95bee[m feat: Add UI components and assets for chat interface
+[33m3c43227[m feat: Update chat API with improved error handling and type safety
+[33m980e1e8[m fix: Improve error handling in chat API route
+[33mfecca09[m feat: Update AI chatbot with Grace Santos persona and conversation flow
+[33m1215222[m fix: Remove duplicate Navigation component from quote page
+[33m4655a87[m fix: Remove duplicate Navigation components from individual pages
+[33m55842d0[m fix: Add Navigation import to all pages and remove priority prop from SafeImage
+[33m90ff3d0[m fix: Remove duplicate navigation components
+[33maaa95f0[m feat: Add AI chat interface with Claude integration
+[33m46fd83b[m feat: Add text-based AI chat interface with Claude
+[33m4a4c0ac[m Initial commit with clean history
