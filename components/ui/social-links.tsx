@@ -7,7 +7,7 @@ export function SocialLinks() {
   return (
     <div className="flex items-center space-x-4">
       <a
-        href="https://facebook.com/safehaven"
+        href="https://www.facebook.com/profile.php?id=61572357714436"
         target="_blank"
         rel="noopener noreferrer"
         className="hover:opacity-80 transition-opacity"
