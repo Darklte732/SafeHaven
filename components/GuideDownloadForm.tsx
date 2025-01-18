@@ -64,6 +64,7 @@ export function GuideDownloadForm() {
     e.preventDefault();
     setIsLoading(true);
     setSuccessMessage('');
+    setErrors({});
     
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
@@ -81,26 +82,53 @@ export function GuideDownloadForm() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to download guide');
+        throw new Error(error.error || 'Failed to download guide');
+      }
+
+      // Check if the response is a PDF
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/pdf')) {
+        throw new Error('Invalid response format. Expected PDF.');
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Final-Expense-Insurance-Guide.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      if (blob.size === 0) {
+        throw new Error('Received empty PDF file');
+      }
 
-      setSuccessMessage('Guide downloaded successfully!');
-      setFormData({ name: '', email: '', phone: '', zipCode: '' });
-      setErrors({});
-      toast.success('Guide downloaded successfully!');
+      try {
+        // Create download link
+        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'Final-Expense-Insurance-Guide.pdf';
+        
+        // Append to body, click, and cleanup
+        document.body.appendChild(a);
+        a.click();
+        
+        // Small delay before cleanup to ensure download starts
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 100);
+
+        setSuccessMessage('Guide downloaded successfully!');
+        setFormData({ name: '', email: '', phone: '', zipCode: '' });
+        toast.success('Guide downloaded successfully!');
+      } catch (downloadError) {
+        console.error('Download error:', downloadError);
+        // Fallback: Open PDF in new tab if download fails
+        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+        window.open(url, '_blank');
+        toast.success('Guide opened in new tab. Please save it from there.');
+      }
     } catch (error) {
       console.error('Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to download guide');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to download guide';
+      toast.error(errorMessage);
+      setErrors(prev => ({ ...prev, submit: errorMessage }));
     } finally {
       setIsLoading(false);
     }
