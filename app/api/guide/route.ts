@@ -76,25 +76,32 @@ export async function POST(req: Request) {
       throw new Error('Failed to store lead information');
     }
 
-    // Get a signed URL with download flag
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+    // Download the file from Supabase
+    const { data: fileData, error: downloadError } = await supabase.storage
       .from(BUCKET_NAME)
-      .createSignedUrl(FILE_PATH, 3600, {
-        download: true,
-        transform: {
-          quality: 100
-        }
-      });
+      .download(FILE_PATH);
 
-    if (signedUrlError || !signedUrlData?.signedUrl) {
-      console.error('Failed to generate signed URL:', signedUrlError);
-      throw new Error('Failed to generate download URL');
+    if (downloadError || !fileData) {
+      console.error('Failed to download file:', downloadError);
+      throw new Error('Failed to retrieve the guide');
     }
 
-    // Return the signed URL with download flag
-    return NextResponse.json({
-      url: signedUrlData.signedUrl,
-      fileName: 'SafeHaven-Final-Expense-Guide.pdf'
+    // Convert blob to array buffer
+    const arrayBuffer = await fileData.arrayBuffer();
+
+    // Create response with proper headers for download
+    const headers = new Headers({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="SafeHaven-Final-Expense-Guide.pdf"',
+      'Content-Length': arrayBuffer.byteLength.toString(),
+      'Cache-Control': 'no-cache',
+      'Access-Control-Expose-Headers': 'Content-Disposition'
+    });
+
+    // Return the file directly
+    return new NextResponse(arrayBuffer, {
+      status: 200,
+      headers
     });
 
   } catch (error: any) {
