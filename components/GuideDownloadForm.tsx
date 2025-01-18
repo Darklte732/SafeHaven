@@ -87,24 +87,11 @@ export function GuideDownloadForm() {
         throw new Error(errorData.error || 'Failed to download guide');
       }
 
-      // Get the blob from the response
-      const blob = await response.blob();
+      const data = await response.json();
       
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
-      
-      // Create a link element
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'SafeHaven-Final-Expense-Guide.pdf'; // Set the file name
-      document.body.appendChild(link);
-      
-      // Click the link to trigger the download
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      if (!data.success || !data.url) {
+        throw new Error('Failed to get download URL');
+      }
 
       // Show success message
       setSuccessMessage('Thank you! Your guide is being downloaded.');
@@ -112,6 +99,24 @@ export function GuideDownloadForm() {
       
       // Reset form
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
+
+      // Create a hidden iframe for download
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      // Set iframe source to trigger download
+      if (iframe.contentWindow) {
+        iframe.src = data.url;
+      }
+
+      // Remove iframe after a delay
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        
+        // Fallback: If download hasn't started, open in new tab
+        window.open(data.url, '_blank');
+      }, 1000);
 
     } catch (error) {
       console.error('Error:', error);
