@@ -12,7 +12,8 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "setup-workbook-storage": "node scripts/setup-workbook-storage.js",
-    "generate-workbook": "node scripts/generate-workbook.js"
+    "generate-workbook": "node scripts/generate-workbook.js",
+    "setup-guide": "node scripts/generate-guide.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.33.1",
