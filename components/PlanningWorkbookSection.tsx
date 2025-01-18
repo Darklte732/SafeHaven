@@ -3,7 +3,7 @@
 import React from 'react';
 import { WorkbookDownloadButton } from './WorkbookDownloadButton';
 
-export function BeneficiaryWorkbookSection() {
+export function PlanningWorkbookSection() {
   return (
     <section className="bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto text-center">
