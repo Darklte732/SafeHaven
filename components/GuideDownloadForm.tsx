@@ -24,9 +24,6 @@ interface FormErrors {
   zipCode?: string;
 }
 
-// Direct URL to the PDF in Supabase
-const PDF_URL = 'https://powrsyajxwotomihmvum.supabase.co/storage/v1/object/public/guides/final-expense-guide.pdf';
-
 export function GuideDownloadForm() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -62,37 +59,6 @@ export function GuideDownloadForm() {
     }
 
     return errors;
-  };
-
-  const handleDownload = () => {
-    // First attempt: Direct window.open
-    window.open(PDF_URL, '_blank');
-
-    // Second attempt: After a short delay, try iframe
-    setTimeout(() => {
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = PDF_URL;
-      document.body.appendChild(iframe);
-      
-      // Remove iframe after it's loaded
-      iframe.onload = () => {
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-        }, 1000);
-      };
-    }, 500);
-
-    // Third attempt: Create and click a link
-    setTimeout(() => {
-      const link = document.createElement('a');
-      link.href = PDF_URL;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }, 1000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -216,13 +182,26 @@ export function GuideDownloadForm() {
           )}
         </Button>
       ) : (
-        <Button 
-          type="button" 
-          className="w-full bg-green-600 hover:bg-green-700"
-          onClick={handleDownload}
-        >
-          Download Free Guide
-        </Button>
+        <div className="w-full">
+          <a 
+            href="https://powrsyajxwotomihmvum.supabase.co/storage/v1/object/public/guides/final-expense-guide.pdf"
+            download="SafeHaven-Final-Expense-Guide.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full"
+            onClick={() => toast.success('Download started!')}
+          >
+            <Button 
+              type="button" 
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              Download Free Guide
+            </Button>
+          </a>
+          <p className="text-sm text-gray-500 mt-2 text-center">
+            If the download doesn't start automatically, click the button again
+          </p>
+        </div>
       )}
 
       <FormSuccess message={successMessage} />
