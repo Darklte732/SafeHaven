@@ -1,321 +1,344 @@
 'use client';
 
-import { useState, FormEvent, ChangeEvent, useRef, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { SafeImage } from '@/components/ui/image';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
+import Link from 'next/link';
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-interface ApiResponse {
-  role: 'assistant';
-  content: string;
-  error?: string;
-  details?: string;
-  loading?: boolean;
-  estimatedTime?: string;
-  loadingState?: LoadingState;
-}
-
-interface LoadingState {
-  status: string;
-  startTime: number;
-  endTime: number;
-  message: string;
-  steps: {
-    name: string;
-    duration: number;
-    status: string;
-  }[];
-}
-
-function LoadingIndicator({ loadingState }: { loadingState: LoadingState | null }) {
-  const [timeLeft, setTimeLeft] = useState(120);
-
-  useEffect(() => {
-    if (!loadingState) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => Math.max(0, prev - 1));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [loadingState]);
-
-  if (!loadingState) return null;
-
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-
-  return (
-    <div className="flex flex-col items-center space-y-4 p-4 bg-blue-50 rounded-lg">
-      <div className="flex items-center space-x-2">
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-        <span className="text-blue-600 font-medium">Processing your quotes...</span>
-      </div>
-      
-      <div className="w-full max-w-md bg-white rounded-lg p-4 shadow-sm">
-        <div className="flex justify-between mb-2">
-          <span className="text-gray-600">Time Remaining:</span>
-          <span className="text-blue-600 font-medium">
-            {minutes}:{seconds.toString().padStart(2, '0')}
-          </span>
-        </div>
-        
-        <div className="space-y-3">
-          {loadingState.steps.map((step, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              {step.status === 'completed' ? (
-                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-              ) : step.status === 'in_progress' ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              ) : (
-                <div className="w-4 h-4 rounded-full border-2 border-gray-300"></div>
-              )}
-              <span className={`text-sm ${
-                step.status === 'completed' ? 'text-green-600' :
-                step.status === 'in_progress' ? 'text-blue-600' :
-                'text-gray-500'
-              }`}>
-                {step.name}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+const preQualifyQuestions = [
+  {
+    id: 'age',
+    question: 'What is your age?',
+    type: 'select',
+    options: ['Under 50', '50-60', '61-70', '71-80', 'Over 80']
+  },
+  {
+    id: 'health',
+    question: 'How would you rate your overall health?',
+    type: 'select',
+    options: ['Excellent', 'Good', 'Fair', 'Poor']
+  },
+  {
+    id: 'coverage',
+    question: 'What type of coverage are you interested in?',
+    type: 'select',
+    options: ['Final Expense', 'Term Life', 'Whole Life', 'Not Sure']
+  },
+  {
+    id: 'timeline',
+    question: 'When are you looking to get coverage?',
+    type: 'select',
+    options: ['Immediately', 'Within 30 days', 'Within 3 months', 'Just researching']
+  }
+];
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loadingState, setLoadingState] = useState<LoadingState | undefined>(undefined);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const [hasStarted, setHasStarted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showOptIn, setShowOptIn] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [answers, setAnswers] = useState({});
+  const [optInData, setOptInData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    consentToContact: false,
+    consentToHIPAA: false
+  });
+  const [messages, setMessages] = useState([
+    {
+      type: 'assistant',
+      content: '👋 Hi! I\'m your SafeHaven Insurance assistant. I can help you with:'
+    },
+    {
+      type: 'assistant',
+      content: '💰 Get Your Free Quote Now'
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleAnswer = (answer: string) => {
+    setAnswers(prev => ({ ...prev, [preQualifyQuestions[currentStep].id]: answer }));
+    if (currentStep < preQualifyQuestions.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    } else {
+      setShowOptIn(true);
+    }
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Function to handle user input submission
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  const handleOptInSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-          userInfo: {
-            isUserInfo: true,
-            rawInput: input
-          }
-        }),
-      });
-
-      const data: ApiResponse = await response.json();
-
-      if (!response.ok || data.error) {
-        throw new Error(data.details || data.error || 'Failed to get response');
-      }
-
-      setLoadingState(data.loadingState);
-      setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
-      setHasStarted(true);
-    } catch (error) {
-      console.error('Error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to get response');
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.' 
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  // Function to handle quick option selection
-  const handleQuickOptionSelect = async (option: string) => {
-    if (isLoading) return;
-
-    setInput(option);
-    const userMessage: Message = { role: 'user', content: option };
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-          userInfo: {
-            isUserInfo: true,
-            rawInput: option
-          }
-        }),
-      });
-
-      const data: ApiResponse = await response.json();
-
-      if (!response.ok || data.error) {
-        throw new Error(data.details || data.error || 'Failed to get response');
-      }
-
-      setLoadingState(data.loadingState);
-      setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
-      setHasStarted(true);
-    } catch (error) {
-      console.error('Error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to get response');
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.' 
-      }]);
-    } finally {
-      setIsLoading(false);
-      setInput('');
-    }
+    // Save opt-in data to database here
+    setShowChat(true);
   };
 
-  function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
-    setInput(e.target.value);
-  }
+  const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!inputMessage.trim()) return;
+
+    // Add user message
+    setMessages(prev => [...prev, { type: 'user', content: inputMessage }]);
+    setInputMessage('');
+
+    // Simulate AI response
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        type: 'assistant',
+        content: 'I understand you\'re interested in learning more. Let me help you find the best coverage options for your needs.'
+      }]);
+    }, 1000);
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white pt-24">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+      <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Chat with SafeHaven AI Assistant</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Chat with SafeHaven AI Assistant
+          </h1>
           <p className="text-xl text-gray-600">
             Get instant answers about final expense insurance, coverage options, and more.
           </p>
         </div>
-        
-        {/* Chat Interface */}
-        <Card className="w-full h-[600px] p-6 flex flex-col bg-white shadow-lg">
-          <div 
-            ref={chatContainerRef}
-            className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pr-4"
-          >
-            {error && (
-              <div className="text-center p-4 bg-red-50 text-red-600 rounded-lg">
-                {error}
-              </div>
-            )}
-            {messages.length === 0 ? (
-              <div className="text-center text-gray-500 mt-8 space-y-4">
-                <div className="flex justify-center mb-6">
-                  <SafeImage
-                    src="/images/logo.svg"
-                    alt="SafeHaven Logo"
-                    width={60}
-                    height={60}
-                    className="opacity-50"
-                  />
-                </div>
-                <p className="text-lg">👋 Hi! I'm your SafeHaven Insurance assistant.</p>
-                <p>I can help you with:</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mt-4">
-                  <button
-                    onClick={() => handleQuickOptionSelect("Get quote for $25,000 coverage")}
-                    className="quick-option group"
-                  >
-                    💰 Get Your Free Quote Now
-                    <span className="quick-option-arrow">→</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
+
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          {showChat ? (
+            <div className="h-[600px] flex flex-col">
+              <div className="flex-1 overflow-y-auto mb-4 space-y-4">
                 {messages.map((message, index) => (
                   <div
                     key={index}
-                    className={`flex ${
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
+                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    {message.role === 'assistant' && (
-                      <div className="chat-avatar chat-avatar-assistant">
-                        <SafeImage
-                          src="/images/logo.svg"
-                          alt="AI"
-                          width={20}
-                          height={20}
-                          className="invert"
-                        />
-                      </div>
-                    )}
                     <div
-                      className={`chat-message ${
-                        message.role === 'user'
-                          ? 'chat-message-user'
-                          : 'chat-message-assistant'
+                      className={`max-w-[80%] rounded-lg p-4 ${
+                        message.type === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-800'
                       }`}
                     >
                       {message.content}
                     </div>
-                    {message.role === 'user' && (
-                      <div className="chat-avatar chat-avatar-user">
-                        <span className="text-gray-600">You</span>
-                      </div>
-                    )}
                   </div>
                 ))}
-                {loadingState && <LoadingIndicator loadingState={loadingState} />}
-                <div ref={messagesEndRef} />
               </div>
-            )}
-          </div>
-          
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4 sticky bottom-0 bg-white p-4 border-t border-gray-200">
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={handleInputChange}
-                placeholder="Type your message..."
-                disabled={isLoading}
-                className="flex-1 h-12"
-              />
-              <Button 
-                type="submit" 
-                disabled={isLoading || !input.trim()}
-                className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-8 py-3 h-12 text-lg font-medium shadow-lg rounded-md"
-              >
-                {isLoading ? 'Sending...' : 'Send'}
-              </Button>
+              <form onSubmit={handleSendMessage} className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="submit"
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Send
+                </button>
+              </form>
             </div>
-          </form>
-        </Card>
+          ) : !showOptIn ? (
+            <div>
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold mb-2">
+                  Question {currentStep + 1} of {preQualifyQuestions.length}
+                </h2>
+                <div className="h-2 bg-gray-200 rounded">
+                  <div 
+                    className="h-2 bg-blue-600 rounded transition-all duration-300"
+                    style={{ width: `${((currentStep + 1) / preQualifyQuestions.length) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="mb-8">
+                <h3 className="text-xl mb-4">{preQualifyQuestions[currentStep].question}</h3>
+                <div className="grid gap-3">
+                  {preQualifyQuestions[currentStep].options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => handleAnswer(option)}
+                      className="w-full py-3 px-4 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h2 className="text-2xl font-semibold mb-6">Complete Your Profile</h2>
+              <form onSubmit={handleOptInSubmit} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={optInData.firstName}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, firstName: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={optInData.lastName}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, lastName: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={optInData.email}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={optInData.phone}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Address
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={optInData.address}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, address: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={optInData.city}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, city: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      State
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={optInData.state}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, state: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      ZIP Code *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full px-3 py-2 border rounded-lg"
+                      value={optInData.zipCode}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, zipCode: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 border-t pt-6">
+                  <div className="flex items-start">
+                    <input
+                      type="checkbox"
+                      required
+                      id="consentToContact"
+                      className="mt-1"
+                      checked={optInData.consentToContact}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, consentToContact: e.target.checked }))}
+                    />
+                    <label htmlFor="consentToContact" className="ml-2 text-sm text-gray-600">
+                      I consent to receive calls, text messages, and emails about insurance products from SafeHaven Insurance and its licensed insurance agents. I understand that consent is not required to make a purchase and that standard message and data rates may apply. *
+                    </label>
+                  </div>
+
+                  <div className="flex items-start">
+                    <input
+                      type="checkbox"
+                      required
+                      id="consentToHIPAA"
+                      className="mt-1"
+                      checked={optInData.consentToHIPAA}
+                      onChange={(e) => setOptInData(prev => ({ ...prev, consentToHIPAA: e.target.checked }))}
+                    />
+                    <label htmlFor="consentToHIPAA" className="ml-2 text-sm text-gray-600">
+                      I acknowledge that I have read and agree to the HIPAA Authorization, Privacy Policy, and Terms of Service. I understand that this authorization allows SafeHaven Insurance to use my personal health information to provide insurance quotes and services. *
+                    </label>
+                  </div>
+                </div>
+
+                <div className="border-t pt-6">
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Start Chat
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+
+        {/* Additional Resources */}
+        <div className="mt-8 grid md:grid-cols-3 gap-6">
+          <Link href="/guide" className="block bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <h3 className="text-xl font-semibold mb-2">Free Insurance Guide</h3>
+            <p className="text-gray-600">Download our comprehensive guide to final expense insurance.</p>
+          </Link>
+          
+          <Link href="/quote" className="block bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <h3 className="text-xl font-semibold mb-2">Get a Quote</h3>
+            <p className="text-gray-600">Get an instant quote for final expense insurance coverage.</p>
+          </Link>
+          
+          <Link href="/faq" className="block bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <h3 className="text-xl font-semibold mb-2">FAQ</h3>
+            <p className="text-gray-600">Find answers to commonly asked questions about our services.</p>
+          </Link>
+        </div>
+
+        {/* Legal Footer */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>
+            By using this service, you agree to our Terms of Service and Privacy Policy. 
+            Your information is protected by industry-standard security measures and 
+            will only be used in accordance with our HIPAA compliance standards.
+          </p>
+        </div>
       </div>
-    </main>
+    </div>
   );
 } 
