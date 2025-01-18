@@ -28,7 +28,10 @@ export function GuideDownloadForm() {
       phone: formData.get('phone') as string,
       zip: formData.get('zipCode') as string,
       type: 'guide' as const,
-      status: 'new' as const
+      status: 'new' as const,
+      message: null,
+      coverage_amount: null,
+      family_members: null
     };
 
     // Validate required fields

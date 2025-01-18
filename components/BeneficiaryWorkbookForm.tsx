@@ -28,7 +28,9 @@ export function BeneficiaryWorkbookForm() {
       zip: formData.get('zipCode') as string,
       type: 'workbook' as const,
       status: 'new' as const,
-      family_members: formData.get('familyMembers') as string
+      family_members: formData.get('familyMembers') as string,
+      message: null,
+      coverage_amount: null
     };
 
     // Validate required fields
