@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { GuideDownloadForm } from './GuideDownloadForm';
+import { GuideDownloadButton } from './GuideDownloadButton';
 
 export function GuideDownloadSection() {
   return (
@@ -61,7 +61,7 @@ export function GuideDownloadSection() {
           <div className="relative">
             <div className="absolute inset-0 bg-blue-200 rounded-lg transform -rotate-3"></div>
             <div className="relative bg-white p-6 rounded-lg shadow-lg">
-              <GuideDownloadForm />
+              <GuideDownloadButton />
             </div>
           </div>
         </div>
