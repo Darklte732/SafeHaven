@@ -60,6 +60,23 @@ export function GuideDownloadForm() {
     return errors;
   };
 
+  const initiateDownload = (url: string) => {
+    // Create an invisible iframe for download
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    
+    // Set iframe source to trigger download
+    if (iframe.contentWindow) {
+      iframe.src = url;
+    }
+    
+    // Remove iframe after a delay
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -93,15 +110,26 @@ export function GuideDownloadForm() {
         throw new Error('Failed to get download URL');
       }
 
-      // Show success message first
+      // Show success message
       setSuccessMessage('Thank you! Your guide is being downloaded.');
       toast.success('Form submitted successfully!');
       
       // Reset form
       setFormData({ name: '', email: '', phone: '', zipCode: '' });
 
-      // Trigger download in a new window
-      window.open(data.downloadUrl, '_blank');
+      // Try multiple download methods
+      // Method 1: Direct window.location
+      window.location.href = data.downloadUrl;
+      
+      // Method 2: After a short delay, try iframe
+      setTimeout(() => {
+        initiateDownload(data.downloadUrl);
+      }, 1000);
+      
+      // Method 3: After another delay, try window.open
+      setTimeout(() => {
+        window.open(data.downloadUrl, '_blank');
+      }, 2000);
 
     } catch (error) {
       console.error('Error:', error);

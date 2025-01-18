@@ -5,6 +5,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Make sure the bucket is public and the file has public access
+const GUIDE_URL = `${supabaseUrl}/storage/v1/object/public/guides/final-expense-guide.pdf`;
+
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -20,25 +23,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save lead information' }, { status: 500 });
     }
 
-    // Generate a signed URL that's valid for 5 minutes
-    const { data: signedUrlData, error: signedUrlError } = await supabase
-      .storage
-      .from('guides')
-      .createSignedUrl('final-expense-guide.pdf', 300, {
-        download: true,
-        transform: {
-          quality: 100
-        }
-      });
-
-    if (signedUrlError || !signedUrlData) {
-      console.error('Signed URL error:', signedUrlError);
-      return NextResponse.json({ error: 'Failed to generate download link' }, { status: 500 });
-    }
-
+    // Return the direct public URL
     return NextResponse.json({
       success: true,
-      downloadUrl: signedUrlData.signedUrl
+      downloadUrl: GUIDE_URL
     });
 
   } catch (error) {
