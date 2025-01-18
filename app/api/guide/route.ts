@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import puppeteer from 'puppeteer-core';
-import nodemailer from 'nodemailer';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -15,17 +14,6 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Phone validation regex
 const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
-
-// Initialize email transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 export async function POST(req: Request) {
   let browser;
@@ -57,20 +45,24 @@ export async function POST(req: Request) {
     }
 
     // Check for existing lead
-    const { data: existingLead } = await supabase
+    const { data: existingLead, error: leadError } = await supabase
       .from('leads')
       .select('guide_sent_at')
       .eq('email', email)
       .single();
 
-    // If guide was sent in the last 24 hours, prevent resending
+    if (leadError && leadError.code !== 'PGRST116') {
+      throw new Error(`Database error: ${leadError.message}`);
+    }
+
+    // If guide was downloaded in the last 24 hours, prevent redownload
     if (existingLead?.guide_sent_at) {
       const lastSent = new Date(existingLead.guide_sent_at);
       const hoursSinceLastSent = (Date.now() - lastSent.getTime()) / (1000 * 60 * 60);
       
       if (hoursSinceLastSent < 24) {
         return NextResponse.json(
-          { error: 'Guide was already sent. Please wait 24 hours before requesting again.' },
+          { error: 'Guide was already downloaded. Please wait 24 hours before requesting again.' },
           { status: 400 }
         );
       }
@@ -78,11 +70,13 @@ export async function POST(req: Request) {
 
     // Launch browser
     browser = await puppeteer.launch({
-      executablePath: process.env.CHROME_PATH,
-      args: ['--no-sandbox'],
+      executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: true,
     });
 
     const page = await browser.newPage();
+    await page.setViewport({ width: 1200, height: 1600 });
 
     // Read the HTML template
     const templatePath = join(process.cwd(), 'templates', 'final-expense-guide.html');
@@ -91,6 +85,7 @@ export async function POST(req: Request) {
     // Set content and generate PDF
     await page.setContent(template, {
       waitUntil: 'networkidle0',
+      timeout: 30000,
     });
 
     const pdf = await page.pdf({
@@ -120,63 +115,45 @@ export async function POST(req: Request) {
     };
 
     if (existingLead) {
-      await supabase
+      const { error: updateError } = await supabase
         .from('leads')
         .update(leadData)
         .eq('email', email);
+
+      if (updateError) {
+        throw new Error(`Failed to update lead: ${updateError.message}`);
+      }
     } else {
-      await supabase
+      const { error: insertError } = await supabase
         .from('leads')
         .insert([leadData]);
+
+      if (insertError) {
+        throw new Error(`Failed to insert lead: ${insertError.message}`);
+      }
     }
 
-    // Send email with PDF attachment
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
-      to: email,
-      subject: 'Your Final Expense Insurance Guide',
-      html: `
-        <h1>Thank you for requesting our guide!</h1>
-        <p>Dear ${name},</p>
-        <p>Please find attached your comprehensive guide to Final Expense Insurance.</p>
-        <p>If you have any questions or would like to discuss your coverage options, please don't hesitate to contact us.</p>
-        <br>
-        <p>Best regards,</p>
-        <p>The SafeHaven Insurance Team</p>
-      `,
-      attachments: [
-        {
-          filename: 'Final-Expense-Insurance-Guide.pdf',
-          content: pdf,
-        },
-      ],
+    // Return the PDF directly for download
+    return new NextResponse(pdf, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="Final-Expense-Insurance-Guide.pdf"',
+      },
     });
-
-    // Send internal notification
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
-      to: process.env.ADMIN_EMAIL,
-      subject: 'New Guide Download Lead',
-      html: `
-        <h2>New Guide Download</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ''}
-        ${zipCode ? `<p><strong>ZIP Code:</strong> ${zipCode}</p>` : ''}
-        <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-      `,
-    });
-
-    return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Error processing guide request:', error);
     return NextResponse.json(
-      { error: 'Failed to process guide request' },
+      { error: error.message || 'Failed to process guide request' },
       { status: 500 }
     );
   } finally {
     if (browser) {
-      await browser.close();
+      try {
+        await browser.close();
+      } catch (error) {
+        console.error('Error closing browser:', error);
+      }
     }
   }
 } 
