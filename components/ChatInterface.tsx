@@ -25,17 +25,40 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
   const [messages, setMessages] = useState<Message[]>([
     {
       type: 'assistant',
-      content: `Hi ${userProfile.firstName}! I'm Grace. What's your main reason for looking into Final Expense coverage?`,
+      content: `Hi ${userProfile.firstName}! To help you find the best coverage, I'll need some information. Let's start with your state of residence.`,
       quickReplies: [
-        'Protect my family',
-        'Plan for the future',
-        'Just exploring options'
+        'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+        'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+        'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+        'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+        'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
       ]
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [collectedInfo, setCollectedInfo] = useState({
+    state: '',
+    gender: '',
+    dob: '',
+    height: '',
+    weight: '',
+    tobacco: '',
+    coverageAmount: '',
+    healthInfo: {
+      nicotine: '',
+      medications: '',
+      heartConditions: '',
+      lungConditions: '',
+      bloodPressure: '',
+      cancer: '',
+      diabetes: '',
+      stroke: '',
+      hospitalStays: ''
+    }
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,8 +76,9 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
   const handleMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
     
+    const newUserMessage = { type: 'user' as const, content: message };
     setInputMessage('');
-    setMessages(prev => [...prev, { type: 'user', content: message }]);
+    setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
 
     try {
@@ -66,9 +90,10 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
           userProfile,
           preQualAnswers,
           messageHistory: messages.map(m => ({
-            role: m.type === 'user' ? 'user' : 'assistant',
+            role: m.type,
             content: m.content
-          }))
+          })),
+          collectedInfo
         })
       });
 
@@ -80,9 +105,21 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
         throw new Error(data.error);
       }
 
+      if (data.collectedInfo) {
+        setCollectedInfo(prev => ({
+          ...prev,
+          ...data.collectedInfo
+        }));
+      }
+
+      const responseContent = messages.length > 1 
+        ? data.response.replace(/Hi.*?Grace\.?\s*/i, '').trim()
+        : data.response;
+
       setMessages(prev => [...prev, { 
-        type: 'assistant', 
-        content: data.response,
+        type: 'assistant' as const, 
+        content: responseContent,
+        quickReplies: data.quickReplies
       }]);
     } catch (error) {
       console.error('Chat error:', error);

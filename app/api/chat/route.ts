@@ -7,28 +7,28 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const systemPrompt = `You are Grace, a licensed insurance agent. NEVER quote prices or make up carrier information. Always use the quoting tool for accurate quotes.
+
+Required information to collect (one at a time):
+- State, Gender, DOB (MMDDYYYY), Height, Weight, Tobacco Use, Coverage Amount
+- Health: nicotine, medications, heart/lung conditions, blood pressure, cancer, diabetes, stroke history, hospital stays
+
+Only after collecting ALL health information, recommend ONE carrier:
+- Mutual of Omaha (mild conditions)
+- American Amicable (moderate conditions)
+- AIG (serious conditions)
+
+Keep responses under 2 sentences. Ask one question at a time.`;
+
 export async function POST(request: Request) {
   try {
     const { message, userProfile, preQualAnswers, messageHistory } = await request.json();
-
-    // Build conversation history
-    const messages = [];
     
-    // Only add the system message for the first interaction
-    if (!messageHistory || messageHistory.length === 0) {
-      messages.push({
-        role: 'assistant',
-        content: `Hi ${userProfile.firstName}, I'm Grace. What's your main reason for looking into Final Expense coverage?`
-      });
-    } else {
-      // Add previous messages
-      messages.push(...messageHistory.map((m: { role: string; content: string }) => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.content
-      })));
-    }
+    const messages = messageHistory?.map((m: { role: string; content: string }) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content
+    })) || [];
 
-    // Add current message
     messages.push({
       role: 'user',
       content: message
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       model: 'claude-3-opus-20240229',
       max_tokens: 1024,
       temperature: 0.7,
-      system: `You are Grace, a licensed insurance agent. Keep responses under 2 sentences. Focus on understanding client needs and moving the conversation forward. Never introduce yourself again after the first message.`,
+      system: systemPrompt,
       messages
     });
 
