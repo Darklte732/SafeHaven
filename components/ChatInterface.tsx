@@ -11,6 +11,11 @@ interface Message {
     monthlyRate: number;
     tier: 'Bronze' | 'Silver' | 'Gold';
   }>;
+  quoteError?: {
+    message: string;
+    code: string;
+    isRetryable: boolean;
+  };
 }
 
 interface ChatInterfaceProps {
@@ -125,7 +130,8 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
         type: 'assistant' as const, 
         content: responseContent,
         quickReplies: data.quickReplies,
-        quotes: data.quotes
+        quotes: data.quotes,
+        quoteError: data.quoteError
       }]);
     } catch (error) {
       console.error('Chat error:', error);
@@ -169,10 +175,27 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
                         'bg-orange-50 border-2 border-orange-200'
                       }`}>
                         <div className="font-semibold text-lg mb-1">{quote.tier} Protection</div>
-                        <div>Coverage: ${quote.coverageAmount.toLocaleString()}</div>
-                        <div>Monthly Rate: ${quote.monthlyRate.toFixed(2)}</div>
+                        <div className="text-lg">Coverage: ${quote.coverageAmount.toLocaleString()}</div>
+                        <div className="text-lg font-semibold text-blue-600">Monthly Rate: ${quote.monthlyRate.toFixed(2)}</div>
+                        <div className="mt-2 text-sm text-gray-600">
+                          ✓ 24-hour claims processing<br/>
+                          ✓ Locked-in rates<br/>
+                          ✓ No medical exam required<br/>
+                          ✓ Coverage never expires
+                        </div>
                       </div>
                     ))}
+                  </div>
+                )}
+                {message.quoteError && (
+                  <div className="mt-4 p-4 rounded-lg bg-red-50 border-2 border-red-200">
+                    <div className="font-semibold text-red-600 mb-1">Quote Generation Error</div>
+                    <div className="text-gray-700">{message.quoteError.message}</div>
+                    {message.quoteError.isRetryable && (
+                      <div className="mt-2 text-sm text-gray-600">
+                        Don't worry! We can try again with the same information.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

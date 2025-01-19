@@ -2,7 +2,7 @@
 
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { getMooQuotes } from '@/utils/moo-quote';
+import { getMooQuotes, MooQuotingError } from '@/utils/moo-quote';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -36,6 +36,11 @@ CRITICAL RULES:
 3. Never direct clients to external agents or carriers
 4. Maintain a friendly, professional tone
 5. If quote generation fails, apologize and offer to try again
+6. When presenting quotes, highlight the benefits:
+   - 24-hour claims processing
+   - Locked-in rates
+   - No medical exam required
+   - Coverage never expires
 
 Keep responses under 2 sentences. Ask one question at a time. Never skip required information.`;
 
@@ -65,6 +70,8 @@ export async function POST(request: Request) {
       typeof collectedInfo.healthInfo?.hospitalStays !== 'undefined';
 
     let quotes = null;
+    let quoteError = null;
+
     if (hasAllInfo) {
       try {
         quotes = await getMooQuotes({
@@ -86,6 +93,19 @@ export async function POST(request: Request) {
         });
       } catch (error) {
         console.error('Failed to get quotes:', error);
+        if (error instanceof MooQuotingError) {
+          quoteError = {
+            message: error.message,
+            code: error.code,
+            isRetryable: error.isRetryable
+          };
+        } else {
+          quoteError = {
+            message: 'An unexpected error occurred',
+            code: 'UNKNOWN_ERROR',
+            isRetryable: true
+          };
+        }
       }
     }
 
@@ -98,13 +118,17 @@ export async function POST(request: Request) {
       model: 'claude-3-opus-20240229',
       max_tokens: 1024,
       temperature: 0.7,
-      system: systemPrompt + (quotes ? `\n\nAvailable quotes:\n${JSON.stringify(quotes)}` : ''),
+      system: systemPrompt + (quotes ? 
+        `\n\nAvailable quotes:\n${JSON.stringify(quotes)}` : 
+        (quoteError ? `\n\nQuote error: ${JSON.stringify(quoteError)}` : '')
+      ),
       messages
     });
 
     return NextResponse.json({ 
       response: response.content[0].type === 'text' ? response.content[0].text : 'I apologize, but I encountered an error. Please try again.',
-      quotes
+      quotes,
+      quoteError
     });
   } catch (error) {
     console.error('Chat API error:', error);
