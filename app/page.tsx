@@ -181,13 +181,13 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20">
+      <section className="py-20 bg-gray-50">
         <div className="container-custom">
           <h2 className="text-center text-3xl font-bold text-gray-900 mb-16">What Our Customers Say</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-duration-300">
               <div className="flex items-center mb-6">
-                <div className="relative h-16 w-16">
+                <div className="relative h-16 w-16 flex-shrink-0">
                   <SafeImage 
                     src="/images/testimonials/sarah-testimonial.jpg" 
                     alt="Sarah Johnson" 
@@ -205,7 +205,7 @@ export default function Home() {
             </div>
             <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-duration-300">
               <div className="flex items-center mb-6">
-                <div className="relative h-16 w-16">
+                <div className="relative h-16 w-16 flex-shrink-0">
                   <SafeImage 
                     src="/images/testimonials/robert-testimonial.jpg" 
                     alt="Robert Martinez" 
@@ -223,7 +223,7 @@ export default function Home() {
             </div>
             <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-duration-300">
               <div className="flex items-center mb-6">
-                <div className="relative h-16 w-16">
+                <div className="relative h-16 w-16 flex-shrink-0">
                   <SafeImage 
                     src="/images/testimonials/mary-testimonial.jpg" 
                     alt="Mary Wilson" 

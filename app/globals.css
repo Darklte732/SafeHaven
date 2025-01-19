@@ -31,7 +31,7 @@
   }
 
   .testimonial-card {
-    @apply bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-duration-300;
+    @apply bg-white p-6 rounded-xl border border-gray-100 hover:shadow-sm transition-all duration-300;
   }
 
   .testimonial-image-container {
@@ -39,7 +39,7 @@
   }
 
   .testimonial-image {
-    @apply rounded-full object-cover w-full h-full;
+    @apply rounded-full object-cover w-12 h-12;
   }
 
   .testimonial-content {
@@ -47,7 +47,7 @@
   }
 
   .testimonial-name {
-    @apply text-xl font-semibold text-gray-900;
+    @apply font-semibold text-gray-900;
   }
 
   .testimonial-location {
@@ -55,7 +55,7 @@
   }
 
   .testimonial-quote {
-    @apply text-gray-600 italic mt-6;
+    @apply text-gray-600 leading-relaxed;
   }
 
   .icon-container {
@@ -104,6 +104,19 @@
 
   .chat-avatar-user {
     @apply font-medium;
+  }
+
+  /* Testimonial styles */
+  .testimonials-grid {
+    @apply grid md:grid-cols-3 gap-12;
+  }
+
+  .testimonial-header {
+    @apply flex items-center gap-4 mb-4;
+  }
+
+  .testimonial-info {
+    @apply flex flex-col;
   }
 }
 
