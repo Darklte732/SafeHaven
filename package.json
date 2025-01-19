@@ -41,12 +41,13 @@
     "nodemailer": "^6.9.16",
     "puppeteer": "^24.1.0",
     "puppeteer-core": "^10.4.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "sonner": "^1.7.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.17",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.17.14",
@@ -54,7 +55,7 @@
     "@types/react-dom": "^18.3.5",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.2.4",
-    "next": "^15.1.4",
+    "next": "^14.0.4",
     "postcss": "^8.5.1",
     "tailwindcss-scrollbar": "^0.1.0",
     "ts-node": "^10.9.2",
