@@ -6,6 +6,11 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   quickReplies?: string[];
+  quotes?: Array<{
+    coverageAmount: number;
+    monthlyRate: number;
+    tier: 'Bronze' | 'Silver' | 'Gold';
+  }>;
 }
 
 interface ChatInterfaceProps {
@@ -119,7 +124,8 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
       setMessages(prev => [...prev, { 
         type: 'assistant' as const, 
         content: responseContent,
-        quickReplies: data.quickReplies
+        quickReplies: data.quickReplies,
+        quotes: data.quotes
       }]);
     } catch (error) {
       console.error('Chat error:', error);
@@ -154,6 +160,21 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
                   : 'bg-gray-100 text-gray-800'
               }`}>
                 {message.content}
+                {message.quotes && (
+                  <div className="mt-4 space-y-4">
+                    {message.quotes.map((quote, i) => (
+                      <div key={i} className={`p-4 rounded-lg ${
+                        quote.tier === 'Gold' ? 'bg-yellow-50 border-2 border-yellow-200' :
+                        quote.tier === 'Silver' ? 'bg-gray-50 border-2 border-gray-200' :
+                        'bg-orange-50 border-2 border-orange-200'
+                      }`}>
+                        <div className="font-semibold text-lg mb-1">{quote.tier} Protection</div>
+                        <div>Coverage: ${quote.coverageAmount.toLocaleString()}</div>
+                        <div>Monthly Rate: ${quote.monthlyRate.toFixed(2)}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             {message.type === 'assistant' && message.quickReplies && (
@@ -174,7 +195,7 @@ export default function ChatInterface({ userProfile, preQualAnswers }: ChatInter
         {isLoading && (
           <div className="flex justify-start">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
-              <span className="text-blue-600 text-sm">GS</span>
+              <span className="text-blue-600 text-sm">G</span>
             </div>
             <div className="bg-gray-100 rounded-lg p-4">
               <div className="flex space-x-2">
