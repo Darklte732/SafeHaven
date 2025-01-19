@@ -31,7 +31,31 @@
   }
 
   .testimonial-card {
-    @apply p-6 bg-white rounded-lg shadow-sm border border-gray-100;
+    @apply bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-duration-300;
+  }
+
+  .testimonial-image-container {
+    @apply relative h-16 w-16 flex-shrink-0;
+  }
+
+  .testimonial-image {
+    @apply rounded-full object-cover w-full h-full;
+  }
+
+  .testimonial-content {
+    @apply ml-4 flex-grow;
+  }
+
+  .testimonial-name {
+    @apply text-xl font-semibold text-gray-900;
+  }
+
+  .testimonial-location {
+    @apply text-sm text-gray-600;
+  }
+
+  .testimonial-quote {
+    @apply text-gray-600 italic mt-6;
   }
 
   .icon-container {
