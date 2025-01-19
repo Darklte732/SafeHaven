@@ -187,7 +187,7 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="testimonial-card">
               <div className="flex items-center mb-6">
-                <SafeImage src="/images/customer-1.svg" alt="Sarah Johnson" width={64} height={64} className="rounded-full" />
+                <SafeImage src="/images/testimonials/sarah-testimonial.jpg" alt="Sarah Johnson" width={64} height={64} className="rounded-full object-cover" />
                 <div className="ml-4">
                   <h4 className="font-semibold">Sarah Johnson</h4>
                   <p className="text-sm text-gray-600">Age 65, Florida</p>
@@ -197,7 +197,7 @@ export default function Home() {
             </div>
             <div className="testimonial-card">
               <div className="flex items-center mb-6">
-                <SafeImage src="/images/customer-2.svg" alt="Robert Martinez" width={64} height={64} className="rounded-full" />
+                <SafeImage src="/images/testimonials/robert-testimonial.jpg" alt="Robert Martinez" width={64} height={64} className="rounded-full object-cover" />
                 <div className="ml-4">
                   <h4 className="font-semibold">Robert Martinez</h4>
                   <p className="text-sm text-gray-600">Age 72, Texas</p>
@@ -207,7 +207,7 @@ export default function Home() {
             </div>
             <div className="testimonial-card">
               <div className="flex items-center mb-6">
-                <SafeImage src="/images/customer-3.svg" alt="Mary Wilson" width={64} height={64} className="rounded-full" />
+                <SafeImage src="/images/testimonials/mary-testimonial.jpg" alt="Mary Wilson" width={64} height={64} className="rounded-full object-cover" />
                 <div className="ml-4">
                   <h4 className="font-semibold">Mary Wilson</h4>
                   <p className="text-sm text-gray-600">Age 58, Ohio</p>
