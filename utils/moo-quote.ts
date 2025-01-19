@@ -33,6 +33,19 @@ interface RetryConfig {
   maxDelay: number;
 }
 
+// Add webhook configuration
+interface WebhookConfig {
+  url: string;
+  authToken?: string;
+  workflowId?: string;
+}
+
+const DEFAULT_WEBHOOK_CONFIG: WebhookConfig = {
+  url: process.env.N8N_WEBHOOK_URL || 'https://a42e-45-177-2-86.ngrok-free.app/webhook/MooQuoting',
+  authToken: process.env.N8N_AUTH_TOKEN || '',
+  workflowId: process.env.N8N_WORKFLOW_ID || ''
+};
+
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
   baseDelay: 1000,
@@ -56,7 +69,8 @@ export class MooQuotingError extends Error {
 
 export async function getMooQuotes(
   data: MooQuotingPayload, 
-  retryConfig: RetryConfig = DEFAULT_RETRY_CONFIG
+  retryConfig: RetryConfig = DEFAULT_RETRY_CONFIG,
+  webhookConfig: WebhookConfig = DEFAULT_WEBHOOK_CONFIG
 ): Promise<QuoteResult[]> {
   let attempt = 0;
 
@@ -65,31 +79,46 @@ export async function getMooQuotes(
       // Validate the payload
       MooQuotingSchema.parse(data);
 
+      // Transform data for n8n webhook
       const payload = {
-        ...data,
-        coverageAmount: '15000,20000,25000',
-        // Transform booleans to strings as required by the API
-        Heart_conditions: data.heartConditions.toString(),
-        nicotineUse: data.nicotineUse ? 'Yes' : 'No',
-        High_blood_pressure: data.highBloodPressure.toString(),
-        cancer_history: data.cancerHistory.toString(),
-        Stroke_TIA_history: data.strokeHistory.toString(),
-        Diabetes: data.diabetes.toString(),
-        lung_conditions: data.lungConditions.toString(),
-        Hospital_stays: data.hospitalStays.toString()
+        workflowId: webhookConfig.workflowId,
+        timestamp: new Date().toISOString(),
+        data: {
+          fullName: data.fullName,
+          state: data.state,
+          gender: data.gender,
+          dob: data.dob,
+          height: data.height.toString(),
+          weight: data.weight.toString(),
+          phone: data.phone,
+          coverageAmount: '15000,20000,25000',
+          nicotineUse: data.nicotineUse ? 'Yes' : 'No',
+          heartConditions: data.heartConditions ? 'Yes' : 'No',
+          highBloodPressure: data.highBloodPressure ? 'Yes' : 'No',
+          cancerHistory: data.cancerHistory ? 'Yes' : 'No',
+          strokeHistory: data.strokeHistory ? 'Yes' : 'No',
+          diabetes: data.diabetes ? 'Yes' : 'No',
+          lungConditions: data.lungConditions ? 'Yes' : 'No',
+          hospitalStays: data.hospitalStays ? 'Yes' : 'No'
+        }
       };
 
-      const response = await fetch('https://ab96-45-177-2-86.ngrok-free.app/webhook/MooQuoting', {
+      const response = await fetch(webhookConfig.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(webhookConfig.authToken && { 'Authorization': `Bearer ${webhookConfig.authToken}` }),
+          ...(webhookConfig.workflowId && { 'X-Workflow-ID': webhookConfig.workflowId })
         },
         body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
         throw new MooQuotingError(
-          `HTTP error ${response.status}`,
+          `Webhook error: ${response.status} - ${errorText}`,
+          response.status === 401 ? 'AUTH_ERROR' : 
+          response.status === 422 ? 'VALIDATION_ERROR' : 
           'HTTP_ERROR',
           response.status >= 500
         );
@@ -97,33 +126,31 @@ export async function getMooQuotes(
 
       const result = await response.json();
       
-      // Validate the response structure
       if (!result.rates || typeof result.rates !== 'object') {
         throw new MooQuotingError(
-          'Invalid response format',
+          'Invalid response format from webhook',
           'INVALID_RESPONSE',
           false
         );
       }
 
-      // Transform the response into our standard format
       return [
         {
           coverageAmount: 15000,
           monthlyRate: parseFloat(result.rates.bronze) || 0,
-          tier: 'Bronze'
+          tier: 'Bronze' as const
         },
         {
           coverageAmount: 20000,
           monthlyRate: parseFloat(result.rates.silver) || 0,
-          tier: 'Silver'
+          tier: 'Silver' as const
         },
         {
           coverageAmount: 25000,
           monthlyRate: parseFloat(result.rates.gold) || 0,
-          tier: 'Gold'
+          tier: 'Gold' as const
         }
-      ].filter(quote => quote.monthlyRate > 0); // Only return valid quotes
+      ].filter(quote => quote.monthlyRate > 0);
     } catch (error) {
       attempt++;
       
