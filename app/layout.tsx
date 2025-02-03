@@ -1,13 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import dynamic from 'next/dynamic'
+import Providers from '@/components/Providers'
 
 const inter = Inter({ subsets: ['latin'] })
-
-const Providers = dynamic(() => import('@/components/Providers'), {
-  ssr: false
-})
 
 export const metadata: Metadata = {
   title: 'SafeHaven Insurance - Affordable Final Expense Coverage',
@@ -58,6 +54,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark')
+                } else {
+                  document.documentElement.classList.remove('dark')
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>

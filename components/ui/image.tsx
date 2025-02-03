@@ -1,36 +1,25 @@
 'use client'
 
-import Image from 'next/image'
+import Image, { ImageProps } from 'next/image'
 import { useState } from 'react'
 
-interface SafeImageProps {
-  src: string
-  alt: string
-  width?: number
-  height?: number
-  className?: string
-  priority?: boolean
+interface SafeImageProps extends Omit<ImageProps, 'onError'> {
+  fallbackSrc?: string
 }
 
-export function SafeImage({ src, alt, width, height, className = '', priority = false }: SafeImageProps) {
-  const [isLoading, setIsLoading] = useState(true)
+export function SafeImage({ src, alt, fallbackSrc = '/images/placeholder.jpg', ...props }: SafeImageProps) {
+  const [imgSrc, setImgSrc] = useState(src)
+  const [error, setError] = useState(false)
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
-      <Image
-        src={src}
-        alt={alt}
-        width={width}
-        height={height}
-        className={`
-          duration-700 ease-in-out
-          ${isLoading ? 'scale-110 blur-lg' : 'scale-100 blur-0'}
-        `}
-        onLoad={() => setIsLoading(false)}
-        priority={priority}
-        quality={90}
-        loading={priority ? 'eager' : 'lazy'}
-      />
-    </div>
+    <Image
+      {...props}
+      src={error ? fallbackSrc : imgSrc}
+      alt={alt}
+      onError={() => {
+        setImgSrc(fallbackSrc)
+        setError(true)
+      }}
+    />
   )
 } 

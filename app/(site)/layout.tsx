@@ -17,7 +17,7 @@ const NavbarFallback = () => (
 
 const Navbar = dynamic(() => import('@/components/Navbar'), {
   ssr: false,
-  loading: () => <NavbarFallback />
+  loading: NavbarFallback
 })
 
 export default function SiteLayout({
