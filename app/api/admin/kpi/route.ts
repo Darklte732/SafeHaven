@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import type { KPIDashboard, TopPerformer } from '@/types/kpi'
+import { supabase } from '@/lib/supabase'
+import { createServerClient } from '@/lib/supabase/server'
 
 export async function GET() {
   try {
@@ -27,7 +29,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createServerClient()
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
     const data = await request.json()
 
     // Get current user session

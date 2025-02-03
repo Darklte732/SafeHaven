@@ -3,12 +3,13 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Providers from '@/components/Providers'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SafeHaven Insurance',
-  description: 'Get peace of mind with our comprehensive final expense insurance coverage.',
+  title: 'SafeHaven Insurance - Affordable Final Expense Coverage',
+  description: 'Get peace of mind with SafeHaven Insurance. Affordable final expense coverage starting at $20/month. No medical exam required.',
   metadataBase: new URL('https://safehaven-insurance.com'),
   alternates: {
     canonical: '/',
@@ -55,10 +56,27 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark')
+                } else {
+                  document.documentElement.classList.remove('dark')
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <Providers>
           <Navbar />
-          {children}
+          <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            {children}
+          </main>
         </Providers>
       </body>
     </html>

@@ -287,7 +287,7 @@ export default function SettingsPage() {
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {section.description}
                     </p>
-                  </div>
+              </div>
                 </div>
 
                 <div className="mt-6">
@@ -314,13 +314,13 @@ export default function SettingsPage() {
                               'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                             )}
                           >
-                            <span
+                  <span
                               className={classNames(
                                 setting.value ? 'translate-x-5' : 'translate-x-0',
                                 'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
                               )}
                             >
-                              <span
+                  <span
                                 className={classNames(
                                   setting.value
                                     ? 'opacity-0 duration-100 ease-out'
@@ -362,15 +362,15 @@ export default function SettingsPage() {
                               </span>
                             </span>
                           </Switch>
-                        </div>
-                      </div>
+              </div>
+            </div>
                     ))}
-                  </div>
+          </div>
                 </div>
               </div>
             </div>
           ))}
-        </div>
+          </div>
       </div>
     </DashboardLayout>
   )

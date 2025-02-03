@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-function QuoteFormContent() {
+export default function QuoteForm() {
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     firstName: '',
@@ -158,17 +158,5 @@ function QuoteFormContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function QuoteForm() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    }>
-      <QuoteFormContent />
-    </Suspense>
   )
 } 

@@ -1,105 +1,96 @@
 'use client'
 
 import { motion } from 'framer-motion'
-
-const features = [
-  {
-    name: 'Affordable Coverage',
-    description: 'Get comprehensive coverage starting at just $20/month, tailored to your needs and budget.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    name: 'Easy Application',
-    description: 'Simple online application process with no medical exam required. Get approved in minutes.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    name: 'Instant Coverage',
-    description: 'Get covered immediately after approval. No waiting periods for your policy to take effect.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    name: 'Lifetime Coverage',
-    description: 'Your coverage never expires as long as premiums are paid. Lock in your rate today.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    ),
-  },
-]
+import { useInView } from 'react-intersection-observer'
+import { SafeImage } from '../ui/image'
 
 export default function FeaturesSection() {
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1
+  })
+
+  const features = [
+    {
+      title: 'Guaranteed Coverage',
+      description: 'No medical exam required. Coverage guaranteed for ages 50-85.',
+      icon: '/images/features/shield-check.svg',
+      color: 'blue'
+    },
+    {
+      title: 'Fast Claims Process',
+      description: 'Claims typically paid within 24-48 hours of submission.',
+      icon: '/images/features/clock.svg',
+      color: 'green'
+    },
+    {
+      title: 'Affordable Coverage',
+      description: 'Plans starting at $20/month with locked-in rates.',
+      icon: '/images/features/dollar.svg',
+      color: 'blue'
+    },
+    {
+      title: '24/7 Support',
+      description: 'Access to our dedicated support team anytime you need help.',
+      icon: '/images/features/support.svg',
+      color: 'blue'
+    },
+    {
+      title: 'Easy Application',
+      description: 'Simple online application process with instant approval.',
+      icon: '/images/features/document.svg',
+      color: 'blue'
+    },
+    {
+      title: 'Flexible Options',
+      description: 'Choose coverage amounts from $5,000 to $50,000.',
+      icon: '/images/features/options.svg',
+      color: 'blue'
+    }
+  ]
+
   return (
-    <div className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="lg:text-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-base text-blue-600 font-semibold tracking-wide uppercase"
-          >
-            Why Choose Us
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl"
-          >
-            Insurance made simple
-          </motion.p>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto"
-          >
-            Get the coverage you need with our easy-to-understand insurance plans.
-          </motion.p>
+    <section ref={ref} className="py-20 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Why Choose SafeHaven?
+          </h2>
+          <p className="text-lg text-gray-600">
+            We make it easy to protect your family's future with affordable coverage and exceptional service.
+          </p>
         </div>
 
-        <div className="mt-20">
-          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="relative"
-              >
-                <div>
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
-                    {feature.icon}
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">{feature.name}</p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex items-center mb-4">
+                  <SafeImage
+                    src={feature.icon}
+                    alt={feature.title}
+                    width={24}
+                    height={24}
+                    className="text-blue-600"
+                  />
+                  <h3 className="text-xl font-semibold text-gray-900 ml-3">
+                    {feature.title}
+                  </h3>
                 </div>
-                <div className="mt-2 ml-16 text-base text-gray-500">
+                <p className="text-gray-600 flex-grow">
                   {feature.description}
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 } 
