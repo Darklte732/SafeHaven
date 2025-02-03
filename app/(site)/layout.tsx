@@ -27,9 +27,7 @@ export default function SiteLayout({
 }) {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <ClientOnly fallback={<NavbarFallback />}>
-        <Navbar />
-      </ClientOnly>
+      <Navbar />
       <div className="pt-16">
         {children}
       </div>
