@@ -6,7 +6,7 @@ export default function SiteLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="pt-16">
+    <div className="min-h-screen bg-white">
       {children}
     </div>
   )
