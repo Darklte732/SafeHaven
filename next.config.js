@@ -16,7 +16,7 @@ const nextConfig = {
         hostname: 'placehold.co',
       }
     ],
-    unoptimized: false,
+    unoptimized: true,
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -30,9 +30,6 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['@prisma/client'],
-    serverActions: {
-      bodySizeLimit: '2mb'
-    }
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -44,9 +41,25 @@ const nextConfig = {
         crypto: false,
       };
     }
+    config.experiments = {
+      ...config.experiments,
+      topLevelAwait: true,
+      layers: true,
+    };
+    config.module = {
+      ...config.module,
+      exprContextCritical: false,
+    };
     return config;
   },
-  poweredByHeader: false
+  poweredByHeader: false,
+  output: 'standalone',
+  generateBuildId: async () => {
+    return 'build'
+  },
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  trailingSlash: false,
+  distDir: '.next'
 }
 
 module.exports = nextConfig 
