@@ -8,8 +8,8 @@ import Script from 'next/script'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SafeHaven Insurance - Affordable Final Expense Coverage',
-  description: 'Get peace of mind with SafeHaven Insurance. Affordable final expense coverage starting at $20/month. No medical exam required.',
+  title: 'SafeHaven Insurance',
+  description: 'Get peace of mind with our comprehensive final expense insurance coverage.',
   metadataBase: new URL('https://safehaven-insurance.com'),
   alternates: {
     canonical: '/',
