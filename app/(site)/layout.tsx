@@ -1,5 +1,8 @@
-import Navbar from '@/components/Navbar'
-import { Suspense } from 'react'
+import dynamic from 'next/dynamic'
+
+const Navbar = dynamic(() => import('@/components/Navbar'), {
+  ssr: false
+})
 
 export default function SiteLayout({
   children,
@@ -8,9 +11,7 @@ export default function SiteLayout({
 }) {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <Suspense>
-        <Navbar />
-      </Suspense>
+      <Navbar />
       <div className="pt-16">
         {children}
       </div>
