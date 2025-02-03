@@ -10,6 +10,9 @@ import Script from 'next/script';
 import { BeneficiaryWorkbookSection } from '@/components/BeneficiaryWorkbookSection';
 import { GuideDownloadSection } from '@/components/GuideDownloadSection';
 
+// Import blur data URLs for images
+import { blurDataUrl } from '@/lib/constants';
+
 export default function HomePage() {
   const [age, setAge] = useState(50);
   const [coverageAmount, setCoverageAmount] = useState(10000);
@@ -62,7 +65,18 @@ export default function HomePage() {
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <Image src="/logo.png" alt="SafeHaven" width={32} height={32} className="mr-2" />
+              <div className="relative w-8 h-8 mr-2">
+                <Image
+                  src="/images/logo.png"
+                  alt="SafeHaven"
+                  fill
+                  className="object-contain"
+                  sizes="32px"
+                  priority
+                  placeholder="blur"
+                  blurDataURL={blurDataUrl}
+                />
+              </div>
               <span className="text-xl font-bold">SafeHaven</span>
             </Link>
           </div>
@@ -82,8 +96,11 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-28 pb-20 bg-gradient-to-br from-blue-500 to-blue-600">
-        <div className="container mx-auto px-6">
+      <section className="relative pt-28 pb-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-700">
+          <div className="absolute inset-0 bg-blue-600/20 backdrop-blur-[2px]" />
+        </div>
+        <div className="container mx-auto px-6 relative">
           <div className="flex flex-wrap items-center -mx-4">
             <div className="w-full lg:w-1/2 px-4 mb-12 lg:mb-0">
               <div className="flex items-center space-x-6 mb-8">
@@ -123,16 +140,20 @@ export default function HomePage() {
             </div>
             <div className="w-full lg:w-1/2 px-4">
               <div className="relative">
-                <div className="bg-white rounded-2xl shadow-xl p-8">
-                  <Image
-                    src="/family-illustration.svg"
-                    alt="Family Protection"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto"
-                    priority
-                  />
-                  <div className="absolute -bottom-4 right-4 bg-green-500 text-white px-6 py-2 rounded-full text-sm font-medium shadow-lg">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8">
+                  <div className="relative aspect-[4/3] w-full">
+                    <Image
+                      src="/images/family-illustration.svg"
+                      alt="Family Protection"
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      priority
+                      placeholder="blur"
+                      blurDataURL={blurDataUrl}
+                    />
+                  </div>
+                  <div className="absolute -bottom-4 right-4 bg-green-500 text-white px-6 py-2 rounded-full text-sm font-medium shadow-lg transform hover:scale-105 transition-transform">
                     98% Claims Satisfaction
                   </div>
                 </div>
@@ -277,7 +298,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Coverage Calculator */}
+      {/* Calculator Section */}
       <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
@@ -294,35 +315,45 @@ export default function HomePage() {
                     <label className="block text-gray-700 font-medium mb-2">
                       Your Age: {age}
                     </label>
-                    <input
-                      type="range"
-                      min="50"
-                      max="85"
-                      value={age}
-                      onChange={(e) => setAge(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="flex justify-between text-sm text-gray-500 mt-2">
-                      <span>50</span>
-                      <span>85</span>
+                    <div className="relative">
+                      <input
+                        type="range"
+                        min="50"
+                        max="85"
+                        value={age}
+                        onChange={(e) => setAge(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer before:absolute before:w-full before:h-2 before:bg-blue-600 before:rounded-l-lg"
+                        style={{
+                          backgroundImage: `linear-gradient(to right, #3B82F6 ${(age - 50) * (100/35)}%, #E5E7EB ${(age - 50) * (100/35)}%)`
+                        }}
+                      />
+                      <div className="flex justify-between text-sm text-gray-500 mt-2">
+                        <span>50</span>
+                        <span>85</span>
+                      </div>
                     </div>
                   </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-2">
                       Coverage Amount: ${coverageAmount.toLocaleString()}
                     </label>
-                    <input
-                      type="range"
-                      min="5000"
-                      max="50000"
-                      step="5000"
-                      value={coverageAmount}
-                      onChange={(e) => setCoverageAmount(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="flex justify-between text-sm text-gray-500 mt-2">
-                      <span>$5,000</span>
-                      <span>$50,000</span>
+                    <div className="relative">
+                      <input
+                        type="range"
+                        min="5000"
+                        max="50000"
+                        step="5000"
+                        value={coverageAmount}
+                        onChange={(e) => setCoverageAmount(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer before:absolute before:w-full before:h-2 before:bg-blue-600 before:rounded-l-lg"
+                        style={{
+                          backgroundImage: `linear-gradient(to right, #3B82F6 ${(coverageAmount - 5000) * (100/45000)}%, #E5E7EB ${(coverageAmount - 5000) * (100/45000)}%)`
+                        }}
+                      />
+                      <div className="flex justify-between text-sm text-gray-500 mt-2">
+                        <span>$5,000</span>
+                        <span>$50,000</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -341,10 +372,10 @@ export default function HomePage() {
                       'Rate locked in for life'
                     ].map((item, index) => (
                       <li key={index} className="flex items-center text-gray-600">
-                        <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
-                        {item}
+                        <span>{item}</span>
                       </li>
                     ))}
                   </ul>

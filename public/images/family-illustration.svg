@@ -1,0 +1,40 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="family_gradient" x1="0" y1="0" x2="600" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background shapes -->
+  <path d="M0 0h600v400H0z" fill="#F3F4F6"/>
+  <path d="M50 50h500v300H50z" fill="url(#family_gradient)" opacity="0.1"/>
+  
+  <!-- Family group -->
+  <g transform="translate(150, 100)">
+    <!-- Adult 1 -->
+    <path d="M100 50a25 25 0 100-50 25 25 0 000 50z" fill="#3B82F6"/>
+    <path d="M75 60h50v90H75z" fill="#3B82F6"/>
+    
+    <!-- Adult 2 -->
+    <path d="M200 50a25 25 0 100-50 25 25 0 000 50z" fill="#3B82F6"/>
+    <path d="M175 60h50v90H175z" fill="#3B82F6"/>
+    
+    <!-- Child 1 -->
+    <path d="M150 80a20 20 0 100-40 20 20 0 000 40z" fill="#60A5FA"/>
+    <path d="M135 90h30v60h-30z" fill="#60A5FA"/>
+    
+    <!-- Child 2 -->
+    <path d="M50 70a15 15 0 100-30 15 15 0 000 30z" fill="#60A5FA"/>
+    <path d="M40 80h20v40H40z" fill="#60A5FA"/>
+    
+    <!-- Child 3 -->
+    <path d="M250 70a15 15 0 100-30 15 15 0 000 30z" fill="#60A5FA"/>
+    <path d="M240 80h20v40h-20z" fill="#60A5FA"/>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="50" cy="50" r="20" fill="#3B82F6" opacity="0.1"/>
+  <circle cx="550" cy="350" r="30" fill="#3B82F6" opacity="0.1"/>
+  <path d="M500 100l50-50M500 50l50 50" stroke="#3B82F6" stroke-width="2" opacity="0.2"/>
+</svg> 
