@@ -1,7 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
-
-export const dynamic = 'force-dynamic'
+import { NextResponse } from 'next/server'
 
 const defaultSettings = {
   notifications: {
@@ -56,6 +53,8 @@ const defaultSettings = {
     timeFormat: '12h'
   }
 }
+
+export const runtime = 'nodejs'
 
 export async function GET() {
   return NextResponse.json(defaultSettings);

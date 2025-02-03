@@ -46,7 +46,8 @@ const nextConfig = {
   generateBuildId: () => 'build',
   poweredByHeader: false,
   compress: true,
-  productionBrowserSourceMaps: false
+  productionBrowserSourceMaps: false,
+  swcMinify: true
 }
 
 module.exports = nextConfig 
