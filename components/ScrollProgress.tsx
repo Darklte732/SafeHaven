@@ -1,3 +1,5 @@
+'use client'
+
 import { useScrollProgress } from '@/hooks/useScrollProgress'
 
 export const ScrollProgress = () => {
