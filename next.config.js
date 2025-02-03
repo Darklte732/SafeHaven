@@ -6,13 +6,13 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
   images: {
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    domains: [
-      'localhost',
-      process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', ''),
-    ].filter(Boolean),
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'safehaven-insurance.com',
+      },
+    ],
+    unoptimized: true,
   },
   typescript: {
     ignoreBuildErrors: true,
