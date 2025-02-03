@@ -30,12 +30,24 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client'],
+    optimizePackageImports: ['@prisma/client'],
+    serverActions: {
+      bodySizeLimit: '2mb'
+    }
   },
-  poweredByHeader: false,
-  distDir: '.next',
-  generateBuildId: async () => {
-    return 'build'
-  }
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
+    return config;
+  },
+  poweredByHeader: false
 }
 
 module.exports = nextConfig 
