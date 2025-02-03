@@ -29,7 +29,6 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client'],
     optimizePackageImports: ['@prisma/client'],
     serverActions: {
       bodySizeLimit: '2mb'
