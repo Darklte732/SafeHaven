@@ -56,16 +56,16 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Progress Bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-blue-600 origin-left z-50"
+        className="fixed top-0 left-0 right-0 h-1 bg-blue-600 origin-left z-[60]"
         style={{ scaleX: scrollYProgress }}
       />
 
       {/* Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-200">
+      <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200/80">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <div className="relative w-8 h-8 mr-2">
+              <div className="relative w-8 h-8 mr-2.5">
                 <Image
                   src="/images/logo.png"
                   alt="SafeHaven"
@@ -73,22 +73,26 @@ export default function HomePage() {
                   className="object-contain"
                   sizes="32px"
                   priority
-                  placeholder="blur"
-                  blurDataURL={blurDataUrl}
                 />
               </div>
-              <span className="text-xl font-bold">SafeHaven</span>
+              <span className="text-xl font-bold tracking-tight">SafeHaven</span>
             </Link>
           </div>
           <div className="flex items-center space-x-8">
-            <Link href="/features" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Features</Link>
-            <Link href="/get-quote" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Get Quote</Link>
-            <Link href="/faq" className="text-gray-600 hover:text-gray-900 text-sm font-medium">FAQ</Link>
-            <Link href="/chat" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Chat</Link>
-            <Link href="/admin" className="bg-[#3B82F6] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+            <Link href="/features" className="text-gray-600 hover:text-gray-900 text-[0.9375rem] font-medium">Features</Link>
+            <Link href="/get-quote" className="text-gray-600 hover:text-gray-900 text-[0.9375rem] font-medium">Get Quote</Link>
+            <Link href="/faq" className="text-gray-600 hover:text-gray-900 text-[0.9375rem] font-medium">FAQ</Link>
+            <Link href="/chat" className="text-gray-600 hover:text-gray-900 text-[0.9375rem] font-medium">Chat</Link>
+            <Link 
+              href="/admin" 
+              className="bg-[#3B82F6] text-white px-4 py-2 rounded-lg text-[0.9375rem] font-medium hover:bg-blue-600 transition-all duration-200 shadow-sm hover:shadow"
+            >
               Admin Dashboard
             </Link>
-            <Link href="/support" className="bg-[#3B82F6] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+            <Link 
+              href="/support" 
+              className="bg-[#3B82F6] text-white px-4 py-2 rounded-lg text-[0.9375rem] font-medium hover:bg-blue-600 transition-all duration-200 shadow-sm hover:shadow"
+            >
               24/7 Support
             </Link>
           </div>
@@ -97,27 +101,28 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative pt-28 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-700">
-          <div className="absolute inset-0 bg-blue-600/20 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-600 to-blue-700">
+          <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-[0.15] mix-blend-soft-light" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/[0.15] to-transparent" />
         </div>
         <div className="container mx-auto px-6 relative">
           <div className="flex flex-wrap items-center -mx-4">
             <div className="w-full lg:w-1/2 px-4 mb-12 lg:mb-0">
               <div className="flex items-center space-x-6 mb-8">
-                <div className="flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <svg className="w-5 h-5 text-white mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center bg-white/10 backdrop-blur-[2px] px-4 py-2 rounded-full">
+                  <svg className="w-5 h-5 text-white/90 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-white text-sm font-medium">A+ BBB Rating</span>
+                  <span className="text-white/90 text-[0.9375rem] font-medium">A+ BBB Rating</span>
                 </div>
-                <div className="flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <svg className="w-5 h-5 text-white mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center bg-white/10 backdrop-blur-[2px] px-4 py-2 rounded-full">
+                  <svg className="w-5 h-5 text-white/90 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-white text-sm font-medium">Licensed & Insured</span>
+                  <span className="text-white/90 text-[0.9375rem] font-medium">Licensed & Insured</span>
                 </div>
               </div>
-              <h1 className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              <h1 className="text-[3.25rem] lg:text-[3.75rem] font-bold text-white mb-6 leading-[1.1] tracking-tight">
                 Protect Your Family's Future with Affordable Final Expense Insurance
               </h1>
               <p className="text-xl text-white/90 mb-10 leading-relaxed">
@@ -126,13 +131,13 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="/quote"
-                  className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-all transform hover:scale-105"
+                  className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow"
                 >
                   Get Your Free Quote
                 </Link>
                 <Link
                   href="/learn-more"
-                  className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-all"
+                  className="bg-transparent border-2 border-white/80 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-all duration-200"
                 >
                   Learn More →
                 </Link>
@@ -140,23 +145,23 @@ export default function HomePage() {
             </div>
             <div className="w-full lg:w-1/2 px-4">
               <div className="relative">
-                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 transform hover:scale-[1.02] transition-all duration-300">
                   <div className="relative aspect-[4/3] w-full">
                     <Image
-                      src="/images/family-illustration.svg"
+                      src="/images/family-illustration.png"
                       alt="Family Protection"
                       fill
                       className="object-contain"
                       sizes="(max-width: 768px) 100vw, 50vw"
                       priority
-                      placeholder="blur"
-                      blurDataURL={blurDataUrl}
                     />
                   </div>
-                  <div className="absolute -bottom-4 right-4 bg-green-500 text-white px-6 py-2 rounded-full text-sm font-medium shadow-lg transform hover:scale-105 transition-transform">
+                  <div className="absolute -bottom-4 right-4 bg-green-500 text-white px-6 py-2 rounded-full text-[0.9375rem] font-medium shadow-lg transform hover:scale-105 transition-all duration-200">
                     98% Claims Satisfaction
                   </div>
                 </div>
+                <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl" />
+                <div className="absolute -top-8 -left-8 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl" />
               </div>
             </div>
           </div>

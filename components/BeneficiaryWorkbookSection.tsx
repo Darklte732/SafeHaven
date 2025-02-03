@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import { SafeImage } from './ui/image'
-import Link from 'next/link'
+import Image from 'next/image'
 
 export function BeneficiaryWorkbookSection() {
   const [ref, inView] = useInView({
@@ -15,6 +14,21 @@ export function BeneficiaryWorkbookSection() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   }
+
+  const handleDownload = async () => {
+    try {
+      // Track download event
+      console.log('Workbook download started');
+      
+      // Simulate download delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In production, this would be a real download
+      window.location.href = '/downloads/beneficiary-workbook.pdf';
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
 
   return (
     <section ref={ref} className="py-20 bg-gray-50">
@@ -50,7 +64,10 @@ export function BeneficiaryWorkbookSection() {
                   </li>
                 ))}
               </ul>
-              <button className="mt-8 inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={handleDownload}
+                className="mt-8 inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
                 Download Free Workbook
                 <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
@@ -59,8 +76,16 @@ export function BeneficiaryWorkbookSection() {
             </div>
             <div className="relative">
               <div className="bg-white rounded-2xl shadow-xl p-8">
-                <div className="aspect-w-4 aspect-h-3 bg-gray-100 rounded-lg mb-6" />
-                <div className="space-y-4">
+                <div className="relative aspect-[4/3] w-full">
+                  <Image
+                    src="/images/workbook-preview.png"
+                    alt="Beneficiary Planning Workbook Preview"
+                    fill
+                    className="object-contain rounded-lg"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+                <div className="space-y-4 mt-6">
                   <div className="h-4 bg-gray-100 rounded w-3/4" />
                   <div className="h-4 bg-gray-100 rounded w-1/2" />
                   <div className="h-4 bg-gray-100 rounded w-5/6" />

@@ -1,5 +1,11 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/footer'
+import { ScrollProgress } from '@/components/ScrollProgress'
+import { ExitIntentPopup } from '@/components/ExitIntentPopup'
 import './globals.css'
 import Providers from '@/components/Providers'
 
@@ -53,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -68,9 +74,32 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Google Analytics */}
+        <script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+            `,
+          }}
+        />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
-        <Providers>{children}</Providers>
+      <body className={`${inter.className} h-full`} suppressHydrationWarning>
+        <ScrollProgress />
+        <Header />
+        <main className="min-h-screen">
+          <Providers>{children}</Providers>
+        </main>
+        <Footer />
+        <ExitIntentPopup />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

@@ -1,13 +1,31 @@
 'use client';
 
-import React from 'react';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import Image from 'next/image';
 import { GuideDownloadButton } from './GuideDownloadButton';
 
 export function GuideDownloadSection() {
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1
+  });
+
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <section className="py-20">
+    <section ref={ref} className="py-20">
       <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto">
+        <motion.div
+          variants={fadeIn}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={{ duration: 0.6 }}
+          className="max-w-4xl mx-auto"
+        >
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
             Download Your Free Final Expense Insurance Guide
           </h2>
@@ -35,12 +53,18 @@ export function GuideDownloadSection() {
                     </li>
                   ))}
                 </ul>
-                <button className="mt-8 w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                  Download Free Guide
-                </button>
+                <GuideDownloadButton className="mt-8" />
               </div>
               <div className="relative">
-                <div className="aspect-w-3 aspect-h-4 bg-gray-100 rounded-lg mb-6" />
+                <div className="relative aspect-[3/4] w-full mb-6">
+                  <Image
+                    src="/images/guide-preview.png"
+                    alt="Final Expense Insurance Guide Preview"
+                    fill
+                    className="object-contain rounded-lg"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
                 <div className="space-y-4">
                   <div className="h-4 bg-gray-100 rounded w-2/3" />
                   <div className="h-4 bg-gray-100 rounded w-1/2" />
@@ -51,7 +75,15 @@ export function GuideDownloadSection() {
                     "This guide helped me understand exactly what I needed to protect my family. Highly recommended!"
                   </blockquote>
                   <div className="mt-4 flex items-center">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full" />
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src="/images/testimonial-avatar.png"
+                        alt="Sarah M."
+                        fill
+                        className="object-cover rounded-full"
+                        sizes="40px"
+                      />
+                    </div>
                     <div className="ml-3">
                       <div className="font-medium text-gray-900">Sarah M.</div>
                       <div className="text-sm text-gray-500">Verified Customer</div>
@@ -61,7 +93,7 @@ export function GuideDownloadSection() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

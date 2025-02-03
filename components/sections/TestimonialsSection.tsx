@@ -1,74 +1,117 @@
 'use client'
 
-import { SafeImage } from '@/components/ui/image'
+import Image from "next/image"
+import { Container } from "@/components/ui/Container"
 
 const testimonials = [
   {
-    id: 1,
-    name: 'James Wilson',
-    role: 'Retired Teacher',
-    image: 'https://placehold.co/400x400/png',
-    quote: "The process was incredibly simple, and the peace of mind knowing my family is protected is priceless. Highly recommend SafeHaven Insurance."
+    content: "The process was incredibly simple and straightforward. I got my policy in minutes and the rates were better than I expected.",
+    author: {
+      name: "Sarah Johnson",
+      role: "Homeowner",
+      image: "/images/testimonials/avatar-1.jpg",
+    },
   },
   {
-    id: 2,
-    name: 'Linda Martinez',
-    role: 'Small Business Owner',
-    image: 'https://placehold.co/400x400/png',
-    quote: "I was amazed at how affordable the coverage was. The team was very helpful in explaining all my options."
+    content: "Their customer service is exceptional. They took the time to understand my needs and found the perfect coverage for my family.",
+    author: {
+      name: "Michael Chen",
+      role: "Business Owner",
+      image: "/images/testimonials/avatar-2.jpg",
+    },
   },
   {
-    id: 3,
-    name: 'Sarah Johnson',
-    role: 'Healthcare Worker',
-    image: 'https://placehold.co/400x400/png',
-    quote: "As someone in healthcare, I understand the importance of being prepared. SafeHaven made it easy to secure my family's future."
-  }
+    content: "I was amazed at how easy it was to file a claim. The whole process was handled professionally and quickly.",
+    author: {
+      name: "Emily Rodriguez",
+      role: "Parent",
+      image: "/images/testimonials/avatar-3.jpg",
+    },
+  },
 ]
 
-export default function TestimonialsSection() {
+export const TestimonialsSection = () => {
   return (
-    <section className="py-24 bg-gray-50 dark:bg-gray-800">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            What Our Clients Say
-          </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Real stories from real people who trust SafeHaven Insurance
+    <div className="py-24 sm:py-32 bg-white">
+      <Container>
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-base font-semibold leading-7 text-blue-600">Testimonials</h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            What Our Customers Say
+          </p>
+          <p className="mt-6 text-lg leading-8 text-gray-600">
+            Don't just take our word for it. Here's what some of our satisfied customers have to say about their experience.
           </p>
         </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 grid-rows-1 gap-8 text-sm leading-6 text-gray-900 sm:mt-20 sm:grid-cols-2 xl:mx-0 xl:max-w-none xl:grid-flow-col xl:grid-cols-3">
           {testimonials.map((testimonial) => (
-            <div
-              key={testimonial.id}
-              className="bg-white dark:bg-gray-700 rounded-xl shadow-lg p-8"
+            <figure
+              key={testimonial.author.name}
+              className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-gray-900/5"
             >
-              <div className="flex items-center mb-6">
-                <div className="flex-shrink-0">
-                  <SafeImage
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    width={64}
-                    height={64}
-                    className="rounded-full"
-                  />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {testimonial.name}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">{testimonial.role}</p>
-                </div>
-              </div>
-              <blockquote>
-                <p className="text-gray-600 dark:text-gray-300 italic">{testimonial.quote}</p>
+              <blockquote className="text-gray-900">
+                <p>{`"${testimonial.content}"`}</p>
               </blockquote>
-            </div>
+              <figcaption className="mt-6 flex items-center gap-x-4">
+                <Image
+                  src={testimonial.author.image}
+                  alt={testimonial.author.name}
+                  className="h-10 w-10 rounded-full bg-gray-50"
+                  width={40}
+                  height={40}
+                />
+                <div>
+                  <div className="font-semibold">{testimonial.author.name}</div>
+                  <div className="text-gray-600">{testimonial.author.role}</div>
+                </div>
+              </figcaption>
+            </figure>
           ))}
         </div>
-      </div>
-    </section>
+        <div className="mt-16 flex justify-center gap-8">
+          <div className="flex items-center gap-x-4">
+            <Image
+              src="/images/bbb-rating.svg"
+              alt="BBB A+ Rating"
+              className="h-12 w-auto"
+              width={48}
+              height={48}
+            />
+            <div className="text-sm leading-6">
+              <div className="font-semibold text-gray-900">A+ BBB Rating</div>
+              <div className="text-gray-600">Accredited Business</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-x-4">
+            <Image
+              src="/images/licensed.svg"
+              alt="Licensed Insurance Provider"
+              className="h-12 w-auto"
+              width={48}
+              height={48}
+            />
+            <div className="text-sm leading-6">
+              <div className="font-semibold text-gray-900">Licensed Provider</div>
+              <div className="text-gray-600">All 50 States</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-x-4">
+            <Image
+              src="/images/ssl-secure.svg"
+              alt="SSL Secure"
+              className="h-12 w-auto"
+              width={48}
+              height={48}
+            />
+            <div className="text-sm leading-6">
+              <div className="font-semibold text-gray-900">SSL Secure</div>
+              <div className="text-gray-600">256-bit Encryption</div>
+            </div>
+          </div>
+        </div>
+      </Container>
+    </div>
   )
-} 
+}
+
+export default TestimonialsSection 
