@@ -3,32 +3,17 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useExitIntent } from '@/hooks/useExitIntent'
-import { trackEvent } from '@/utils/analytics'
 
 export const ExitIntentPopup = () => {
   const { isShowing, setIsShowing } = useExitIntent()
   const [email, setEmail] = useState('')
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
-  useEffect(() => {
-    if (isShowing) {
-      trackEvent({ type: 'exit_intent', properties: { shown: true } })
-    }
-  }, [isShowing])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
     try {
       // Add your email subscription logic here
       setHasSubmitted(true)
-      trackEvent({ 
-        type: 'exit_intent',
-        properties: { 
-          action: 'subscribe',
-          email 
-        }
-      })
     } catch (error) {
       console.error('Error submitting form:', error)
     }
