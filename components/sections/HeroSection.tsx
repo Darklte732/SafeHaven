@@ -1,148 +1,67 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { SafeImage } from '../ui/image'
+import { motion } from 'framer-motion'
 
-interface HeroSectionProps {
-  userSegment?: string
-}
-
-interface ContentType {
-  title: string
-  subtitle: string
-  image: string
-}
-
-const contentMap: Record<string, ContentType> = {
-  default: {
-    title: "Protect Your Family's Future with Affordable Final Expense Insurance",
-    subtitle: "Get peace of mind knowing your loved ones won't face financial burden. Coverage starts at just $20/month.",
-    image: "/images/family-generations.svg"
-  },
-  business: {
-    title: "Comprehensive Business Insurance Solutions",
-    subtitle: "Protect your business and employees with our tailored insurance plans. Starting at $50/month.",
-    image: "/images/business-team.svg"
-  }
-}
-
-export default function HeroSection({ userSegment = 'default' }: HeroSectionProps) {
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  }
-
-  const content = contentMap[userSegment] || contentMap.default
-
+export default function HeroSection() {
   return (
-    <section className="relative bg-white py-20 overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-white" />
-      
-      <div className="relative container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Column - Content */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.5 }}
-            className="space-y-8"
-          >
-            {/* Trust Badges */}
-            <div className="flex flex-wrap gap-4">
-              <span className="inline-flex items-center px-4 py-2 bg-white rounded-full shadow-sm">
-                <SafeImage
-                  src="/images/bbb-logo.svg"
-                  alt="BBB A+ Rating"
-                  width={20}
-                  height={20}
-                  className="mr-2"
-                  priority
-                />
-                <span className="text-sm font-medium text-gray-900">A+ BBB Rating</span>
-              </span>
-              <span className="inline-flex items-center px-4 py-2 bg-white rounded-full shadow-sm">
-                <SafeImage
-                  src="/images/shield.svg"
-                  alt="Licensed & Insured"
-                  width={20}
-                  height={20}
-                  className="mr-2"
-                  priority
-                />
-                <span className="text-sm font-medium text-gray-900">Licensed & Insured</span>
-              </span>
-            </div>
-
-            {/* Main Content */}
-            <div className="space-y-6">
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                {content.title}
-              </h1>
-              <p className="text-xl text-gray-600">
-                {content.subtitle}
-              </p>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/quote"
-                className="inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+    <div className="relative overflow-hidden bg-gray-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="relative z-10 pb-8 bg-gray-50 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+          <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+            <div className="sm:text-center lg:text-left">
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl"
               >
-                Get Your Free Quote
-              </Link>
-              <Link
-                href="/guide"
-                className="inline-flex justify-center items-center px-6 py-3 border-2 border-blue-600 text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 transition-colors duration-200"
+                <span className="block">Protect Your</span>{' '}
+                <span className="block text-blue-600">Family's Future</span>
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0"
               >
-                Learn More
-                <svg className="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
+                Get peace of mind with our comprehensive final expense insurance coverage. 
+                Affordable plans starting at $20/month.
+              </motion.p>
+              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  <Link
+                    href="/quote"
+                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
+                  >
+                    Get Your Quote
+                  </Link>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                  className="mt-3 sm:mt-0 sm:ml-3"
+                >
+                  <Link
+                    href="/guide"
+                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10"
+                  >
+                    Download Guide
+                  </Link>
+                </motion.div>
+              </div>
             </div>
-          </motion.div>
-
-          {/* Right Column - Image */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent z-10" />
-              <SafeImage
-                src={content.image}
-                alt="Family Protection"
-                width={600}
-                height={400}
-                className="w-full h-full object-cover"
-                priority
-              />
-            </div>
-
-            {/* Floating Elements */}
-            <motion.div
-              className="absolute -top-6 -right-6 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <span className="font-semibold">24/7 Support</span>
-            </motion.div>
-            <motion.div
-              className="absolute -bottom-6 -left-6 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg"
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-            >
-              <span className="font-semibold">98% Claims Satisfaction</span>
-            </motion.div>
-          </motion.div>
+          </main>
         </div>
       </div>
-    </section>
+      <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+        <div className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full bg-gradient-to-r from-blue-400 to-blue-600 opacity-10"></div>
+      </div>
+    </div>
   )
 } 
