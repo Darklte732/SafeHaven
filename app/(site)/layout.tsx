@@ -1,6 +1,5 @@
-'use client'
-
 import Navbar from '@/components/Navbar'
+import { Suspense } from 'react'
 
 export default function SiteLayout({
   children,
@@ -9,7 +8,9 @@ export default function SiteLayout({
 }) {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <Navbar />
+      <Suspense>
+        <Navbar />
+      </Suspense>
       <div className="pt-16">
         {children}
       </div>
