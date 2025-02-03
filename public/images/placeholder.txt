@@ -1,0 +1,25 @@
+Required images for SafeHaven website:
+
+1. happy-family.jpg - A multi-generational family photo showing grandparents, parents, and children
+2. customer-1.jpg - Professional headshot of a senior customer testimonial
+3. customer-2.jpg - Professional headshot of a middle-aged customer testimonial
+4. customer-3.jpg - Professional headshot of an adult customer testimonial
+5. testimonial-1.jpg - Customer photo for testimonial section
+6. testimonial-2.jpg - Customer photo for testimonial section
+7. testimonial-3.jpg - Customer photo for testimonial section
+
+Image Guidelines:
+- All images should be high quality (minimum 1200px wide)
+- Family photos should be warm and inviting
+- Customer photos should be professional and trustworthy
+- Consider diversity in age, gender, and ethnicity
+- Avoid stock photo clichés
+- Ensure proper licensing for all images
+
+Recommended sources:
+1. Professional photoshoot with real customers (preferred)
+2. Licensed stock photos from:
+   - Shutterstock
+   - iStock
+   - Adobe Stock
+   - Getty Images 

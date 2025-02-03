@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield background -->
+  <path d="M20 2L4 8V20C4 30 20 38 20 38C20 38 36 30 36 20V8L20 2Z" fill="url(#shield_gradient)"/>
+  
+  <!-- House symbol -->
+  <path d="M20 10L14 15V26H26V15L20 10Z" fill="white"/>
+  <path d="M18 20H22V26H18V20Z" fill="url(#shield_gradient)"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="shield_gradient" x1="4" y1="2" x2="36" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+</svg> 
