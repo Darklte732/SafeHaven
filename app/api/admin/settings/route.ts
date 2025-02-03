@@ -57,34 +57,23 @@ const defaultSettings = {
   }
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    return NextResponse.json(defaultSettings)
-  } catch (error) {
-    console.error('Error fetching settings:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch settings' },
-      { status: 500 }
-    )
-  }
+export async function GET() {
+  const mockSettings = {
+    companyName: 'SafeHaven Insurance',
+    email: 'contact@safehaven-insurance.com',
+    phone: '1-800-SAFE-HAVEN',
+    address: '123 Insurance Ave, Safety City, SC 12345',
+    socialMedia: {
+      facebook: 'https://facebook.com/safehaven',
+      twitter: 'https://twitter.com/safehaven',
+      instagram: 'https://instagram.com/safehaven'
+    }
+  };
+
+  return NextResponse.json(mockSettings);
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const settings = await request.json()
-    
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    return NextResponse.json({ message: 'Settings updated successfully' })
-  } catch (error) {
-    console.error('Error updating settings:', error)
-    return NextResponse.json(
-      { error: 'Failed to update settings' },
-      { status: 500 }
-    )
-  }
+export async function POST(request: Request) {
+  const data = await request.json();
+  return NextResponse.json({ message: 'Settings updated successfully', data });
 } 

@@ -1,10 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  },
   images: {
     remotePatterns: [
       {
@@ -29,7 +24,7 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   experimental: {
-    optimizePackageImports: ['@prisma/client'],
+    serverComponentsExternalPackages: ['@prisma/client']
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -44,22 +39,12 @@ const nextConfig = {
     config.experiments = {
       ...config.experiments,
       topLevelAwait: true,
-      layers: true,
-    };
-    config.module = {
-      ...config.module,
-      exprContextCritical: false,
     };
     return config;
   },
-  poweredByHeader: false,
   output: 'standalone',
-  generateBuildId: async () => {
-    return 'build'
-  },
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
-  trailingSlash: false,
-  distDir: '.next'
+  distDir: '.next',
+  staticPageGenerationTimeout: 300
 }
 
 module.exports = nextConfig 
