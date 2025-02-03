@@ -1,5 +1,4 @@
 import { Suspense } from 'react'
-import dynamic from 'next/dynamic'
 
 // Loading component
 function LoadingSpinner() {
@@ -10,26 +9,11 @@ function LoadingSpinner() {
   )
 }
 
-// Sections
-const HeroSection = dynamic(() => import('@/components/sections/HeroSection'), {
-  loading: () => <LoadingSpinner />,
-  ssr: true
-})
-
-const FeaturesSection = dynamic(() => import('@/components/sections/FeaturesSection'), {
-  loading: () => <LoadingSpinner />,
-  ssr: true
-})
-
-const TestimonialsSection = dynamic(() => import('@/components/sections/TestimonialsSection'), {
-  loading: () => <LoadingSpinner />,
-  ssr: true
-})
-
-const CTASection = dynamic(() => import('@/components/sections/CTASection'), {
-  loading: () => <LoadingSpinner />,
-  ssr: true
-})
+// Import sections
+import HeroSection from '@/components/sections/HeroSection'
+import FeaturesSection from '@/components/sections/FeaturesSection'
+import TestimonialsSection from '@/components/sections/TestimonialsSection'
+import CTASection from '@/components/sections/CTASection'
 
 export default function HomePage() {
   return (
