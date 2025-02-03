@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
+import ClientOnly from '@/components/ClientOnly';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -28,7 +29,36 @@ interface FormErrors {
   [key: string]: string;
 }
 
-export default function QuotePage() {
+const LoadingQuote = () => (
+  <main className="min-h-screen bg-gray-50 pt-24 pb-12">
+    <div className="container mx-auto px-4 max-w-3xl">
+      <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="animate-pulse space-y-8">
+          <div className="space-y-2">
+            <div className="h-8 bg-gray-200 rounded w-2/3 mx-auto"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                  <div className="h-10 bg-gray-200 rounded w-full"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="h-12 bg-gray-200 rounded w-full"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+);
+
+function QuoteContent() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -191,7 +221,6 @@ export default function QuotePage() {
     }
   }, [errors]);
 
-  // Rest of the component remains the same, but add error display below each input
   return (
     <main className="min-h-screen bg-gray-50 pt-24 pb-12">
       <div className="container mx-auto px-4 max-w-3xl">
@@ -200,7 +229,6 @@ export default function QuotePage() {
           <p className="text-gray-600 text-center mb-8">Fill out the form below to receive your personalized quote instantly.</p>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Add error messages below each input */}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Personal Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -252,13 +280,6 @@ export default function QuotePage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                 </div>
-              </div>
-            </div>
-
-            {/* Coverage Information */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Coverage Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
                   <input
@@ -269,9 +290,6 @@ export default function QuotePage() {
                     required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                   />
-                  {errors.dateOfBirth && (
-                    <p className="mt-1 text-sm text-red-500">{errors.dateOfBirth}</p>
-                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
@@ -288,8 +306,14 @@ export default function QuotePage() {
                     <option value="other">Other</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Coverage Details</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tobacco Use</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Do you use tobacco products?</label>
                   <select
                     name="tobacco"
                     value={formData.tobacco}
@@ -320,12 +344,11 @@ export default function QuotePage() {
               </div>
             </div>
 
-            {/* Address Information */}
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Address Information</h2>
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+              <h2 className="text-xl font-semibold">Contact Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                   <input
                     type="text"
                     name="address"
@@ -334,97 +357,80 @@ export default function QuotePage() {
                     required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                   />
-                  {errors.address && (
-                    <p className="mt-1 text-sm text-red-500">{errors.address}</p>
-                  )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {errors.city && (
-                      <p className="mt-1 text-sm text-red-500">{errors.city}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                    <input
-                      type="text"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {errors.state && (
-                      <p className="mt-1 text-sm text-red-500">{errors.state}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                    <input
-                      type="text"
-                      name="zipCode"
-                      value={formData.zipCode}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                    {errors.zipCode && (
-                      <p className="mt-1 text-sm text-red-500">{errors.zipCode}</p>
-                    )}
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                  <input
+                    type="text"
+                    name="zipCode"
+                    value={formData.zipCode}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Opt-in and Submit */}
-            <div className="space-y-4 pb-20 md:pb-6">
-              <div className="flex items-start space-x-3">
+            <div className="space-y-4">
+              <div className="flex items-start">
                 <input
                   type="checkbox"
                   name="optIn"
                   checked={formData.optIn}
                   onChange={handleChange}
-                  required
-                  className="mt-1 h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  className="mt-1"
                 />
-                <div className="space-y-2">
-                  <label className="block text-sm text-gray-600">
-                    I agree to receive communications from SafeHaven Insurance, including AI-powered personalized recommendations 
-                    and automated assistance. By clicking submit, I agree to the <Link href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</Link> and
-                    <Link href="/terms" className="text-primary hover:underline"> Terms of Service</Link>.
-                  </label>
-                  <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                    <li>Receive AI-powered insurance recommendations and quotes</li>
-                    <li>Interact with AI chatbots for support</li>
-                    <li>Get personalized coverage suggestions</li>
-                    <li>Receive automated communications about services</li>
-                  </ul>
-                </div>
-              </div>
-              
-              {/* Submit Button - Fixed at bottom for mobile */}
-              <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-50">
-                <button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md transition-colors duration-200"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
-                </button>
+                <label className="ml-2 text-sm text-gray-600">
+                  I agree to receive marketing communications and understand that I can unsubscribe at any time.
+                </label>
               </div>
             </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-full py-3 px-4 text-white font-medium rounded-lg ${
+                isSubmitting
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              {isSubmitting ? 'Submitting...' : 'Get Your Quote'}
+            </button>
           </form>
         </div>
       </div>
     </main>
+  );
+}
+
+export default function QuotePage() {
+  return (
+    <ClientOnly fallback={<LoadingQuote />}>
+      <QuoteContent />
+    </ClientOnly>
   );
 } 

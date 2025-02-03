@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import ClientOnly from '@/components/ClientOnly'
 
 const LoadingSection = () => (
   <div className="h-96 bg-gray-200 dark:bg-gray-800 animate-pulse">
@@ -16,51 +16,50 @@ const LoadingSection = () => (
 )
 
 const HeroSection = dynamic(() => import('@/components/sections/HeroSection'), {
+  ssr: false,
   loading: () => <LoadingSection />
 })
 
 const FeaturesSection = dynamic(() => import('@/components/sections/FeaturesSection'), {
+  ssr: false,
   loading: () => <LoadingSection />
 })
 
 const TestimonialsSection = dynamic(() => import('@/components/sections/TestimonialsSection'), {
+  ssr: false,
   loading: () => <LoadingSection />
 })
 
 const CTASection = dynamic(() => import('@/components/sections/CTASection'), {
+  ssr: false,
   loading: () => <LoadingSection />
 })
 
 const FAQSection = dynamic(() => import('@/components/sections/FAQSection'), {
+  ssr: false,
   loading: () => <LoadingSection />
 })
 
+const LoadingPage = () => (
+  <main>
+    <LoadingSection />
+    <LoadingSection />
+    <LoadingSection />
+    <LoadingSection />
+    <LoadingSection />
+  </main>
+)
+
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return (
-      <main>
-        <LoadingSection />
-        <LoadingSection />
-        <LoadingSection />
-        <LoadingSection />
-        <LoadingSection />
-      </main>
-    )
-  }
-
   return (
-    <main>
-      <HeroSection />
-      <FeaturesSection />
-      <TestimonialsSection />
-      <CTASection />
-      <FAQSection />
-    </main>
+    <ClientOnly fallback={<LoadingPage />}>
+      <main>
+        <HeroSection />
+        <FeaturesSection />
+        <TestimonialsSection />
+        <CTASection />
+        <FAQSection />
+      </main>
+    </ClientOnly>
   )
 } 
