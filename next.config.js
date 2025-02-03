@@ -34,7 +34,8 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
-  output: 'standalone',
+  output: 'export',
+  distDir: '.next',
   poweredByHeader: false
 }
 

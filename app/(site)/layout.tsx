@@ -1,7 +1,4 @@
-'use client'
-
 import dynamic from 'next/dynamic'
-import ClientOnly from '@/components/ClientOnly'
 
 const NavbarFallback = () => (
   <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

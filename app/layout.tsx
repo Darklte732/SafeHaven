@@ -1,13 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import dynamic from 'next/dynamic'
+import Providers from '@/components/Providers'
 
 const inter = Inter({ subsets: ['latin'] })
-
-const Providers = dynamic(() => import('@/components/Providers'), {
-  ssr: false
-})
 
 export const metadata: Metadata = {
   title: 'SafeHaven Insurance - Affordable Final Expense Coverage',
