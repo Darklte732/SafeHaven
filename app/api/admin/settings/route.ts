@@ -58,19 +58,7 @@ const defaultSettings = {
 }
 
 export async function GET() {
-  const mockSettings = {
-    companyName: 'SafeHaven Insurance',
-    email: 'contact@safehaven-insurance.com',
-    phone: '1-800-SAFE-HAVEN',
-    address: '123 Insurance Ave, Safety City, SC 12345',
-    socialMedia: {
-      facebook: 'https://facebook.com/safehaven',
-      twitter: 'https://twitter.com/safehaven',
-      instagram: 'https://instagram.com/safehaven'
-    }
-  };
-
-  return NextResponse.json(mockSettings);
+  return NextResponse.json(defaultSettings);
 }
 
 export async function POST(request: Request) {

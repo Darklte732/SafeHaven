@@ -24,7 +24,10 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client']
+    serverActions: {
+      bodySizeLimit: '2mb'
+    },
+    optimizePackageImports: ['@prisma/client']
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -36,15 +39,14 @@ const nextConfig = {
         crypto: false,
       };
     }
-    config.experiments = {
-      ...config.experiments,
-      topLevelAwait: true,
-    };
     return config;
   },
   output: 'standalone',
   distDir: '.next',
-  staticPageGenerationTimeout: 300
+  generateBuildId: () => 'build',
+  poweredByHeader: false,
+  compress: true,
+  productionBrowserSourceMaps: false
 }
 
 module.exports = nextConfig 
