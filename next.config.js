@@ -11,8 +11,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'safehaven-insurance.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      }
     ],
-    unoptimized: true,
+    unoptimized: false,
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -30,6 +34,8 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
+  output: 'standalone',
+  poweredByHeader: false
 }
 
 module.exports = nextConfig 
