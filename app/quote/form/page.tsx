@@ -1,162 +1,122 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function QuoteForm() {
+function QuoteFormContent() {
   const searchParams = useSearchParams()
-  const [formData, setFormData] = useState({
-    firstName: '',
-    email: '',
-    dateOfBirth: '',
-    tobaccoUse: 'no',
-    coverageAmount: searchParams?.get('coverage') || '',
-    streetAddress: '',
-  })
-
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
-
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      // Add your form submission logic here
-      console.log('Form submitted:', formData)
-    } catch (error) {
-      console.error('Error submitting form:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  if (!isMounted) {
-    return null
-  }
+  const age = searchParams.get('age') || '50'
+  const coverage = searchParams.get('coverage') || '10000'
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Complete Your Quote</h1>
-          
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8 space-y-6">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+    <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          Complete Your Quote
+        </h1>
+        <div className="space-y-6">
+          {/* Pre-filled values from calculator */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Age
+            </label>
+            <input
+              type="text"
+              defaultValue={age}
+              readOnly
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Coverage Amount
+            </label>
+            <input
+              type="text"
+              defaultValue={`$${parseInt(coverage).toLocaleString()}`}
+              readOnly
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
+          {/* Contact Information */}
+          <div>
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              Contact Information
+            </h2>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
             </div>
+          </div>
 
-            <div>
-              <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                id="dateOfBirth"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="tobaccoUse" className="block text-sm font-medium text-gray-700 mb-1">
-                Tobacco Use
-              </label>
-              <select
-                id="tobaccoUse"
-                name="tobaccoUse"
-                value={formData.tobaccoUse}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="coverageAmount" className="block text-sm font-medium text-gray-700 mb-1">
-                Coverage Amount
-              </label>
-              <input
-                type="text"
-                id="coverageAmount"
-                name="coverageAmount"
-                value={formData.coverageAmount}
-                onChange={handleChange}
-                required
-                disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="streetAddress" className="block text-sm font-medium text-gray-700 mb-1">
-                Street Address
-              </label>
-              <input
-                type="text"
-                id="streetAddress"
-                name="streetAddress"
-                value={formData.streetAddress}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
+          {/* Submit Button */}
+          <div className="flex justify-end">
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              {isSubmitting ? 'Processing...' : 'Submit Quote Request'}
+              Get Your Quote
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function QuoteFormPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <QuoteFormContent />
+    </Suspense>
   )
 } 
