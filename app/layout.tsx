@@ -1,12 +1,14 @@
+import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { Header } from '@/components/layout/Header'
-import { Footer } from '@/components/layout/footer'
-import { ScrollProgress } from '@/components/ScrollProgress'
-import { ExitIntentPopup } from '@/components/ExitIntentPopup'
 import './globals.css'
-import Providers from '@/components/Providers'
+import { Toaster } from 'react-hot-toast'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+
+export const metadata: Metadata = {
+  title: 'SafeHaven Insurance - Protect Your Family\'s Future',
+  description: 'Get peace of mind knowing your loved ones won\'t face financial burden. Coverage starts at just $20/month.',
+}
 
 export default function RootLayout({
   children,
@@ -14,15 +16,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full scroll-smooth antialiased" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen flex flex-col`} suppressHydrationWarning>
-        <ScrollProgress />
-        <Header />
-        <main className="flex-grow">
-          <Providers>{children}</Providers>
-        </main>
-        <Footer />
-        <ExitIntentPopup />
+    <html lang="en">
+      <body className={inter.className}>
+        {children}
+        <Toaster />
       </body>
     </html>
   )

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import { Container } from "@/components/ui/Container"
 
 interface FAQ {
   question: string
@@ -29,7 +28,7 @@ const faqs: FAQ[] = [
   },
   {
     question: "How quickly can I get coverage?",
-    answer: "Most policies can be activated within minutes of completing your application. Once your payment is processed, your coverage begins immediately.",
+    answer: "With our streamlined application process, you can get approved in as little as 24 hours. Coverage begins immediately upon approval and first premium payment.",
     category: "process"
   },
   {
@@ -41,32 +40,7 @@ const faqs: FAQ[] = [
     question: "How do claims work?",
     answer: "We pride ourselves on a simple, fast claims process. Claims are typically paid within 24-48 hours of submission with proper documentation. Our dedicated claims team is available 24/7 to assist beneficiaries.",
     category: "claims"
-  },
-  {
-    question: "What types of insurance do you offer?",
-    answer: "We offer a comprehensive range of insurance products including life, health, auto, and home insurance. Each can be customized to meet your specific needs.",
-    category: "insurance"
-  },
-  {
-    question: "How do I file a claim?",
-    answer: "Filing a claim is easy through our online portal. Simply log in to your account, navigate to the claims section, and follow the guided process. Most claims are processed within 24-48 hours.",
-    category: "claims"
-  },
-  {
-    question: "Are there any age restrictions?",
-    answer: "Coverage options are available for all ages, though specific terms and rates may vary. Contact us for personalized information based on your age and needs.",
-    category: "eligibility"
-  },
-  {
-    question: "Can I modify my coverage after purchase?",
-    answer: "Yes, you can modify your coverage at any time. Contact our customer service team or log in to your account to make changes to your policy.",
-    category: "process"
-  },
-  {
-    question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards, direct bank transfers, and digital payment methods. You can choose between monthly, quarterly, or annual payment schedules.",
-    category: "pricing"
-  },
+  }
 ]
 
 const categories = [
@@ -76,11 +50,10 @@ const categories = [
   { id: 'eligibility', name: 'Eligibility' },
   { id: 'process', name: 'Process' },
   { id: 'pricing', name: 'Pricing' },
-  { id: 'claims', name: 'Claims' },
-  { id: 'insurance', name: 'Insurance' },
+  { id: 'claims', name: 'Claims' }
 ]
 
-export const FAQSection = () => {
+export default function FAQSection() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
   const [ref, inView] = useInView({
@@ -98,64 +71,105 @@ export const FAQSection = () => {
   }
 
   return (
-    <div className="py-24 sm:py-32 bg-gray-50">
-      <Container>
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-base font-semibold leading-7 text-blue-600">FAQ</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Frequently Asked Questions
-          </p>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            Find answers to common questions about our insurance services. Can't find what you're looking for? Contact our support team.
-          </p>
-        </div>
-        <dl className="mx-auto mt-16 max-w-4xl space-y-4">
-          {filteredFaqs.map((faq, index) => (
-            <div
-              key={faq.question}
-              className="bg-white px-6 py-4 rounded-lg shadow-sm"
-            >
-              <dt>
+    <section ref={ref} className="py-20 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <motion.div
+          variants={fadeIn}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={{ duration: 0.6 }}
+          className="max-w-4xl mx-auto"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-gray-600">
+              Find answers to common questions about our final expense insurance coverage.
+            </p>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex flex-wrap justify-center gap-2 mb-12">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setActiveCategory(category.id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                  activeCategory === category.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+
+          {/* FAQ List */}
+          <div className="space-y-4">
+            {filteredFaqs.map((faq, index) => (
+              <motion.div
+                key={index}
+                initial={false}
+                animate={{ backgroundColor: expandedIndex === index ? 'rgb(249, 250, 251)' : 'white' }}
+                className="rounded-lg border border-gray-200 overflow-hidden"
+              >
                 <button
                   onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
-                  className="flex w-full items-start justify-between text-left"
+                  className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <span className="text-base font-semibold leading-7 text-gray-900">
-                    {faq.question}
-                  </span>
-                  <span className="ml-6 flex h-7 items-center">
-                    <svg
-                      className={`h-6 w-6 transform ${
-                        expandedIndex === index ? "rotate-180" : ""
-                      } text-gray-400`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                      />
-                    </svg>
-                  </span>
+                  <span className="text-gray-900 font-medium">{faq.question}</span>
+                  <svg
+                    className={`w-5 h-5 text-gray-500 transform transition-transform duration-200 ${
+                      expandedIndex === index ? 'rotate-180' : ''
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
-              </dt>
-              <dd
-                className={`${
-                  expandedIndex === index ? "mt-2" : "hidden"
-                } pr-12 text-base leading-7 text-gray-600`}
-              >
-                {faq.answer}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </Container>
-    </div>
-  )
-}
+                <AnimatePresence initial={false}>
+                  {expandedIndex === index && (
+                    <motion.div
+                      initial="collapsed"
+                      animate="open"
+                      exit="collapsed"
+                      variants={{
+                        open: { opacity: 1, height: "auto" },
+                        collapsed: { opacity: 0, height: 0 }
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                        <p className="text-gray-600">{faq.answer}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </div>
 
-export default FAQSection 
+          {/* Contact Support */}
+          <div className="mt-12 text-center">
+            <p className="text-gray-600 mb-4">
+              Still have questions? We're here to help.
+            </p>
+            <a
+              href="tel:+18446284442"
+              className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              Call (844) 628-4442
+            </a>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  )
+} 

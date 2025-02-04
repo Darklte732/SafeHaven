@@ -10,6 +10,8 @@ module.exports = {
     extend: {
       colors: {
         primary: {
+          DEFAULT: '#3B82F6',
+          dark: '#2563EB',
           50: '#f5f7ff',
           100: '#ebf0ff',
           200: '#d6e0ff',
@@ -26,6 +28,9 @@ module.exports = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
+      fontFamily: {
+        sans: ['var(--font-inter)'],
       },
     },
   },

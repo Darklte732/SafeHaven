@@ -2,63 +2,128 @@
 
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import { Container } from "@/components/ui/Container"
 
-const problems = [
-  {
-    title: "Complex Insurance Jargon",
-    problem: "Insurance can be overwhelming with complex terms and conditions that are hard to understand.",
-    solution: "We break down complex insurance terms into simple, easy-to-understand language, ensuring you know exactly what you're covered for."
-  },
-  {
-    title: "Time-Consuming Process",
-    problem: "Traditional insurance applications can take days or weeks to process with lots of paperwork.",
-    solution: "Our streamlined digital process lets you get quotes and coverage in minutes, not days, with minimal paperwork required."
-  },
-  {
-    title: "Unclear Coverage",
-    problem: "Many people don't know if they have the right coverage or if they're paying too much.",
-    solution: "Our expert advisors analyze your needs and recommend the perfect coverage at the best price, ensuring you're properly protected."
-  }
-]
+export default function ProblemSolutionSection() {
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1
+  })
 
-export const ProblemSolutionSection = () => {
+  const problems = [
+    'Average funeral costs exceed $9,000',
+    'Unexpected medical bills can reach tens of thousands',
+    '78% of Americans live paycheck to paycheck',
+    'Grieving families often struggle with debt'
+  ]
+
+  const solutions = [
+    'Guaranteed acceptance for ages 50-85',
+    'Coverage from $5,000 to $50,000',
+    'Claims paid within 24-48 hours',
+    'No medical exam required'
+  ]
+
   return (
-    <div className="py-24 sm:py-32 bg-white">
-      <Container>
-        <div className="mx-auto max-w-2xl lg:text-center">
-          <h2 className="text-base font-semibold leading-7 text-blue-600">Better Insurance</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Insurance Doesn't Have to Be Complicated
-          </p>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            We've simplified the insurance process to make it easy for you to get the coverage you need.
-          </p>
-        </div>
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-            {problems.map((item) => (
-              <div key={item.title} className="flex flex-col">
-                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900">
-                  {item.title}
-                </dt>
-                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                  <p className="flex-auto">
-                    <span className="font-semibold text-red-600">Problem: </span>
-                    {item.problem}
-                  </p>
-                  <p className="mt-4">
-                    <span className="font-semibold text-green-600">Solution: </span>
-                    {item.solution}
-                  </p>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </Container>
-    </div>
-  )
-}
+    <section ref={ref} className="py-20 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+          {/* Problem Section */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-6"
+          >
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-red-100">
+              <span className="text-sm font-medium text-red-600">The Problem</span>
+            </div>
 
-export default ProblemSolutionSection 
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                The Hidden Cost of Being Unprepared
+              </h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Many families face unexpected financial burdens during their most difficult moments.
+              </p>
+            </div>
+
+            <ul className="space-y-4">
+              {problems.map((problem, index) => (
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="flex items-start text-gray-700"
+                >
+                  <svg
+                    className="h-6 w-6 text-red-500 mr-3 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                  <span>{problem}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Solution Section */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-6"
+          >
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-100">
+              <span className="text-sm font-medium text-green-600">The Solution</span>
+            </div>
+
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Peace of Mind with SafeHaven
+              </h2>
+              <p className="text-lg text-gray-600 mb-8">
+                We provide comprehensive coverage that ensures your family's financial security.
+              </p>
+            </div>
+
+            <ul className="space-y-4">
+              {solutions.map((solution, index) => (
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="flex items-start text-gray-700"
+                >
+                  <svg
+                    className="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span>{solution}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+} 

@@ -5,12 +5,16 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Image from 'next/image'
-import ClientOnly from '@/components/ClientOnly'
 
-function NavbarContent() {
+export default function Navbar() {
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const supabase = createClientComponentClient()
   const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -28,11 +32,14 @@ function NavbarContent() {
     checkAdmin()
   }, [supabase])
 
+  // Don't render anything until mounted
+  if (!mounted) return null
+
   // Hide navbar on admin routes
   if (pathname?.startsWith('/admin')) return null
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
@@ -47,7 +54,7 @@ function NavbarContent() {
                   priority
                 />
               </div>
-              <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
+              <span className="ml-2 text-xl font-bold text-gray-900">
                 SafeHaven
               </span>
             </Link>
@@ -57,25 +64,25 @@ function NavbarContent() {
             <div className="hidden md:flex md:items-center">
               <Link 
                 href="/features" 
-                className="px-3 py-2 text-base text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                className="px-3 py-2 text-base text-gray-600 hover:text-gray-900"
               >
                 Features
               </Link>
               <Link 
                 href="/quote" 
-                className="px-3 py-2 text-base text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                className="px-3 py-2 text-base text-gray-600 hover:text-gray-900"
               >
                 Get Quote
               </Link>
               <Link 
                 href="/faq" 
-                className="px-3 py-2 text-base text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                className="px-3 py-2 text-base text-gray-600 hover:text-gray-900"
               >
                 FAQ
               </Link>
               <Link 
                 href="/chat" 
-                className="px-3 py-2 text-base text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                className="px-3 py-2 text-base text-gray-600 hover:text-gray-900"
               >
                 Chat
               </Link>
@@ -90,13 +97,5 @@ function NavbarContent() {
         </div>
       </div>
     </nav>
-  )
-}
-
-export default function Navbar() {
-  return (
-    <ClientOnly>
-      <NavbarContent />
-    </ClientOnly>
   )
 } 

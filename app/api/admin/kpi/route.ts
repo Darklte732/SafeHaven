@@ -1,57 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
+import type { KPIDashboard, TopPerformer } from '@/types/kpi'
+import { supabase } from '@/lib/supabase'
 import { createServerClient } from '@/lib/supabase/server'
 
-export const dynamic = 'force-dynamic'
-
-const mockData = {
-  summary: {
-    activeAgents: 12,
-    successRate: 68.5,
-    activeDeals: 24,
-    recentActivities: 8
-  },
-  agentPerformance: [
-    { name: 'John Smith', revenue: 125000 },
-    { name: 'Sarah Johnson', revenue: 98000 },
-    { name: 'Michael Brown', revenue: 87500 },
-    { name: 'Emily Davis', revenue: 76000 },
-    { name: 'David Wilson', revenue: 65000 }
-  ],
-  salesStages: [
-    { name: 'Initial Contact', count: 45 },
-    { name: 'Needs Assessment', count: 32 },
-    { name: 'Proposal', count: 28 },
-    { name: 'Negotiation', count: 15 },
-    { name: 'Closed', count: 20 }
-  ],
-  recentActivities: [
-    {
-      id: 1,
-      description: 'New policy created for client',
-      agent: 'John Smith',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 minutes ago
-    },
-    {
-      id: 2,
-      description: 'Client meeting scheduled',
-      agent: 'Sarah Johnson',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString() // 1 hour ago
-    },
-    {
-      id: 3,
-      description: 'Quote approved',
-      agent: 'Michael Brown',
-      timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() // 2 hours ago
-    }
-  ]
-}
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const supabase = createServerClient()
     
-    return NextResponse.json(mockData)
+    // Fetch KPI data
+    const { data: kpiData, error } = await supabase
+      .from('admin_kpi')
+      .select('*')
+      .single()
+
+    if (error) throw error
+
+    return NextResponse.json(kpiData)
   } catch (error) {
     console.error('Error fetching KPI data:', error)
     return NextResponse.json(
@@ -61,9 +27,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const supabase = createServerClient()
+    const cookieStore = cookies()
+    const supabase = createClient(cookieStore)
     const data = await request.json()
 
     // Get current user session

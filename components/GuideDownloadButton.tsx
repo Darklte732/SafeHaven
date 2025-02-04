@@ -1,31 +1,23 @@
 'use client';
 
-interface GuideDownloadButtonProps {
-  className?: string;
-}
+import React from 'react';
 
-export function GuideDownloadButton({ className = '' }: GuideDownloadButtonProps) {
-  const handleDownload = async () => {
-    try {
-      // Track download event
-      console.log('Guide download started');
-      
-      // Simulate download delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In production, this would be a real download
-      window.location.href = '/downloads/final-expense-guide.pdf';
-    } catch (error) {
-      console.error('Download failed:', error);
-    }
-  };
+const GUIDE_URL = 'https://drive.google.com/file/d/1cPJgM4D4HR_eQLIF8miQA6uTHDzN0NyN/view?usp=drive_link';
 
+export function GuideDownloadButton() {
   return (
-    <button
-      onClick={handleDownload}
-      className={`w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors ${className}`}
+    <a 
+      href={GUIDE_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block w-full"
     >
-      Download Free Guide
-    </button>
+      <button
+        type="button"
+        className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+      >
+        Download Free Guide
+      </button>
+    </a>
   );
 } 
