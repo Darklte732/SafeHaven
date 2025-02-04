@@ -11,8 +11,8 @@ import { HeroSection } from '@/components/sections/HeroSection';
 import { FeaturesSection } from '@/components/sections/FeaturesSection';
 import { TestimonialsSection } from '@/components/sections/TestimonialsSection';
 import { ProblemSolutionSection } from '@/components/sections/ProblemSolutionSection';
-import { ROICalculator } from '@/components/sections/ROICalculator';
-import { SocialProofSection } from '@/components/sections/SocialProofSection';
+import ROICalculator from '@/components/sections/ROICalculator';
+import SocialProofSection from '@/components/sections/SocialProofSection';
 import { FAQSection } from '@/components/sections/FAQSection';
 import { CTASection } from '@/components/sections/CTASection';
 import { BeneficiaryWorkbookSection } from '@/components/BeneficiaryWorkbookSection';
@@ -61,23 +61,107 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="relative">
-      <HeroSection />
-      <ProblemSolutionSection />
-      <FeaturesSection />
-      <ROICalculator />
-      <TestimonialsSection />
-      <SocialProofSection />
-      <GuideDownloadSection />
-      <BeneficiaryWorkbookSection />
-      <FAQSection />
-      <CTASection />
-
-      {/* Progress Bar */}
+    <main className="relative">
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-blue-600 origin-left z-[60]"
         style={{ scaleX: scrollYProgress }}
       />
+
+      <div className="flex flex-col min-h-screen">
+        <HeroSection />
+        <ProblemSolutionSection />
+        <FeaturesSection />
+        <ROICalculator />
+        <TestimonialsSection />
+        <SocialProofSection />
+        <GuideDownloadSection />
+        <BeneficiaryWorkbookSection />
+        <FAQSection />
+        <CTASection />
+      </div>
+
+      {showExitPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 relative">
+            <button
+              onClick={() => setShowExitPopup(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <span className="sr-only">Close</span>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Wait! Don't miss out...</h3>
+            <p className="text-gray-600 mb-6">
+              Get 20% off your first month when you sign up today.
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setShowExitPopup(false);
+                  window.location.href = '/quote?discount=20';
+                }}
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Claim Offer
+              </button>
+              <button
+                onClick={() => setShowExitPopup(false)}
+                className="flex-1 border border-gray-300 text-gray-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                No thanks
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showChat && (
+        <div className="fixed bottom-20 right-4 w-96 bg-white rounded-2xl shadow-xl z-40">
+          <div className="p-6 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">Chat with us</h3>
+            <p className="text-sm text-gray-500">We typically reply within a few minutes</p>
+          </div>
+          <div className="h-96 p-6 overflow-y-auto">
+            {/* Chat messages will go here */}
+          </div>
+          <div className="p-6 border-t border-gray-100">
+            <div className="flex items-center">
+              <input
+                type="text"
+                placeholder="Type your message..."
+                className="flex-1 border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button className="ml-4 text-blue-600 hover:text-blue-700">
+                <span className="sr-only">Send message</span>
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={() => setShowChat(!showChat)}
+        className="fixed bottom-4 right-4 w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700 transition-colors z-40"
+      >
+        <span className="sr-only">{showChat ? 'Close chat' : 'Open chat'}</span>
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          {showChat ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          )}
+        </svg>
+      </button>
 
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200/80">
@@ -118,105 +202,11 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Exit Intent Popup */}
-      {showExitPopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 relative">
-            <button
-              onClick={() => setShowExitPopup(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Wait! Don't miss out...</h3>
-            <p className="text-gray-600 mb-6">
-              Get 20% off your first month when you sign up today.
-            </p>
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  setShowExitPopup(false);
-                  window.location.href = '/quote?discount=20';
-                }}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Claim Offer
-              </button>
-              <button
-                onClick={() => setShowExitPopup(false)}
-                className="flex-1 border border-gray-300 text-gray-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-              >
-                No thanks
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Chat Widget */}
-      <div className="fixed bottom-4 right-4 z-40">
-        <button
-          onClick={() => setShowChat(!showChat)}
-          className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700 transition-colors"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            {showChat ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            )}
-          </svg>
-        </button>
-        {showChat && (
-          <div className="absolute bottom-20 right-0 w-96 bg-white rounded-2xl shadow-xl">
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Chat with us</h3>
-              <p className="text-sm text-gray-500">We typically reply within a few minutes</p>
-            </div>
-            <div className="h-96 p-6">
-              <div className="flex flex-col space-y-4">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3 bg-gray-100 rounded-lg p-4 max-w-[80%]">
-                    <p className="text-gray-900">Hi! How can we help you today?</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="p-6 border-t border-gray-100">
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  placeholder="Type your message..."
-                  className="flex-1 border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button className="ml-4 text-blue-600 hover:text-blue-700">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Calendly Integration */}
       <Script
         src="https://assets.calendly.com/assets/external/widget.js"
         strategy="lazyOnload"
       />
-    </div>
+    </main>
   );
 }
