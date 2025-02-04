@@ -1,17 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'safehaven-insurance.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
+        hostname: '**',
       }
     ],
-    unoptimized: true,
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -41,7 +38,6 @@ const nextConfig = {
     }
     return config;
   },
-  output: 'standalone',
   distDir: '.next',
   generateBuildId: () => 'build',
   poweredByHeader: false,
