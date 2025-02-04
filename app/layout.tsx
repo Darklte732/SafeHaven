@@ -14,11 +14,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
-      <body className={`${inter.className} h-full`} suppressHydrationWarning>
+    <html lang="en" className="h-full scroll-smooth antialiased" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen flex flex-col`} suppressHydrationWarning>
         <ScrollProgress />
         <Header />
-        <main className="min-h-screen">
+        <main className="flex-grow">
           <Providers>{children}</Providers>
         </main>
         <Footer />
